@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NetCatHook.WebSite.Models;
 using System.Diagnostics;
-using WebSite.Models;
 
-namespace WebSite.Controllers
+namespace NetCatHook.WebSite.Controllers
 {
     public class HomeController : Controller
     {

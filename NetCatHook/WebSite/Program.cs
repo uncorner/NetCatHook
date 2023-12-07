@@ -1,4 +1,4 @@
-namespace WebSite
+namespace NetCatHook.WebSite
 {
     public class Program
     {

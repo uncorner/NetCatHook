@@ -1,0 +1,5 @@
+<Project>
+    <PropertyGroup>
+        <SolutionName Condition="'$(SolutionName)' == ''">$([System.IO.Path]::GetFileNameWithoutExtension($([System.IO.Directory]::GetFiles("$(MSBuildThisFileDirectory)", "*.sln")[0])))</SolutionName>
+    </PropertyGroup>
+</Project>

@@ -1,4 +1,4 @@
-namespace WebSite.Models
+namespace NetCatHook.WebSite.Models
 {
     public class ErrorViewModel
     {
