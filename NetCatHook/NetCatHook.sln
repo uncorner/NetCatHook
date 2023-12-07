@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33103.184
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebSite", "WebSite\WebSite.csproj", "{4AC887BE-CE64-4E95-B861-C9E9F4FFBEF7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebSite", "WebSite\WebSite.csproj", "{4AC887BE-CE64-4E95-B861-C9E9F4FFBEF7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scraper", "Scraper\Scraper.csproj", "{621383C7-EC21-41ED-8538-ED79DC35084D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{4AC887BE-CE64-4E95-B861-C9E9F4FFBEF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4AC887BE-CE64-4E95-B861-C9E9F4FFBEF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4AC887BE-CE64-4E95-B861-C9E9F4FFBEF7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{621383C7-EC21-41ED-8538-ED79DC35084D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{621383C7-EC21-41ED-8538-ED79DC35084D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{621383C7-EC21-41ED-8538-ED79DC35084D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{621383C7-EC21-41ED-8538-ED79DC35084D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
