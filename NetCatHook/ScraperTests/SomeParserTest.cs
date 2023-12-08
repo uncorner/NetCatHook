@@ -28,10 +28,10 @@ public class SomeParserTest
     }
 
     [Fact]
-    public void TestParseHtml()
+    public async void TestParseHtml()
     {
         SomeParser parser = new();
-        var result = parser.ParseHtml(source);
+        var result = await parser.ParseHtml(source);
 
         Assert.NotNull(result);
         Assert.Equal("//www.google.com/", result);

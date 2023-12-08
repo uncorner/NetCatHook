@@ -10,14 +10,14 @@ class SomeParser
         return $"str-{val}";
     }
 
-    public string? ParseHtml(string html)
+    public async Task<string?> ParseHtml(string html)
     {
         //Create a new context for evaluating webpages with the default config
         IBrowsingContext context = BrowsingContext.New(Configuration.Default);
 
         // TODO: async
         //Create a document from a virtual request / response pattern
-        IDocument document = context.OpenAsync(req => req.Content(html)).Result;
+        IDocument document = await context.OpenAsync(req => req.Content(html));
 
         //Do something with LINQ
         //IEnumerable<IElement> blueListItemsLinq = document.All.Where(m => m.LocalName == "li" && m.ClassList.Contains("blue"));
