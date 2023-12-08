@@ -1,5 +1,4 @@
 ﻿using NetCatHook.Scraper.App;
-using Xunit;
 
 namespace NetCatHook.ScraperTests;
 
