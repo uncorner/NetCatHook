@@ -1,7 +1,7 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
 
-namespace NetCatHook.Scraper.App;
+namespace NetCatHook.Scraper.App.Parsing;
 
 class SomeParser
 {

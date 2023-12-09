@@ -1,6 +1,6 @@
-﻿using NetCatHook.Scraper.App;
+﻿using NetCatHook.Scraper.App.Parsing;
 
-namespace NetCatHook.ScraperTests;
+namespace NetCatHook.ScraperTests.App.Parsing;
 
 public class SomeParserTest
 {
@@ -28,7 +28,7 @@ public class SomeParserTest
     }
 
     [Fact]
-    public async void TestParseHtml()
+    public async Task TestParseHtml()
     {
         SomeParser parser = new();
         var result = await parser.ParseHtml(source);
