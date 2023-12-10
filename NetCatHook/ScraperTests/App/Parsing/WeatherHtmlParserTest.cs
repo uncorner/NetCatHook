@@ -21,7 +21,7 @@ public class WeatherHtmlParserTest
         var html = await downloader.GetHtmlDataAsync(TargetUrl);
 
         var parser = new WeatherHtmlParser(html);
-        var result = parser.TryParse();
+        var result = await parser.TryParseAsync();
 
         Assert.True(result.success);
         Assert.True(result.temp > -40 && result.temp < 40);

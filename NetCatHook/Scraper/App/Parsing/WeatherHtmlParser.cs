@@ -1,5 +1,4 @@
-﻿using System.Net;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace NetCatHook.Scraper.App.Parsing;
 
@@ -12,13 +11,17 @@ class WeatherHtmlParser
         this.html = html;
     }
 
-    public (bool success, int temp) TryParse()
+    public async Task<(bool success, int temp)> TryParseAsync()
     {
-        Regex regex = new Regex(@",""temperatureAir"":\[([-]?[0-9]+)\]",
+        return await Task.Run(DoTryParse);
+    }
+
+    private (bool success, int temp) DoTryParse()
+    {
+        var regex = new Regex(@",""temperatureAir"":\[([-]?[0-9]+)\]",
             RegexOptions.Multiline | RegexOptions.CultureInvariant);
 
-        // TODO: async
-        MatchCollection matches = regex.Matches(html);
+        var matches = regex.Matches(html);
 
         var match = matches.FirstOrDefault();
         if (match is not null)
