@@ -1,16 +1,17 @@
-﻿using System.Net;
+﻿using NetCatHook.Scraper.App;
+using System.Net;
 
 namespace NetCatHook.Scraper.Infrastructure;
 
-class HtmlDownloader
+class HtmlDownloader : IHtmlSource
 {
-    public async Task<string> CallUrl(string fullUrl)
+    public async Task<string> GetHtmlDataAsync(string url)
     {
-        HttpClient client = new HttpClient();
+        var client = new HttpClient();
         ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls13;
         client.DefaultRequestHeaders.Accept.Clear();
 
-        var response = client.GetStringAsync(fullUrl);
+        var response = client.GetStringAsync(url);
         return await response;
     }
 }

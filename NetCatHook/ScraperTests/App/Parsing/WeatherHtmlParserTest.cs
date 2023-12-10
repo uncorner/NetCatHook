@@ -18,7 +18,7 @@ public class WeatherHtmlParserTest
     public async Task TestTryParse()
     {
         var downloader = new HtmlDownloader();
-        var html = await downloader.CallUrl(TargetUrl);
+        var html = await downloader.GetHtmlDataAsync(TargetUrl);
 
         var parser = new WeatherHtmlParser(html);
         var result = parser.TryParse();
