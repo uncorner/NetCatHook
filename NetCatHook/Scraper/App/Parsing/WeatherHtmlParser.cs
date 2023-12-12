@@ -4,19 +4,13 @@ namespace NetCatHook.Scraper.App.Parsing;
 
 class WeatherHtmlParser
 {
-    private readonly string html;
 
-    public WeatherHtmlParser(string html)
+    public async Task<(bool success, int temp)> TryParseAsync(string html)
     {
-        this.html = html;
+        return await Task.Run(() => TryParse(html));
     }
 
-    public async Task<(bool success, int temp)> TryParseAsync()
-    {
-        return await Task.Run(DoTryParse);
-    }
-
-    private (bool success, int temp) DoTryParse()
+    public (bool success, int temp) TryParse(string html)
     {
         var regex = new Regex(@",""temperatureAir"":\[([-]?[0-9]+)\]",
             RegexOptions.Multiline | RegexOptions.CultureInvariant);

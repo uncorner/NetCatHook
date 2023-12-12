@@ -10,8 +10,8 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
-
         builder.Services.AddControllers();
+        builder.Services.AddCustomServices();
 
         var app = builder.Build();
 
@@ -23,11 +23,8 @@ public class Program
 
         app.MapControllers();
 
-        await using var scheduler = new SimpleScheduler(
-            app.Services.GetRequiredService<ILogger<SimpleScheduler>>(),
-            TimeSpan.FromHours(2),
-            new HtmlDownloader());
-        scheduler.Start();
+        await using var scheduler = app.Services.GetRequiredService<SimpleScheduler>();
+        scheduler.Start(TimeSpan.FromHours(2));
 
         app.Run();
 
