@@ -1,8 +1,10 @@
+using NetCatHook.Scraper.App;
+
 namespace NetCatHook.Scraper;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -16,11 +18,16 @@ public class Program
 
         app.UseHttpsRedirection();
 
-        app.UseAuthorization();
-
+        //app.UseAuthorization();
 
         app.MapControllers();
 
+        await using var scheduler = new SimpleScheduler(
+            app.Services.GetRequiredService<ILogger<SimpleScheduler>>(),
+            TimeSpan.FromHours(2) );
+        scheduler.Start();
+
         app.Run();
+
     }
 }
