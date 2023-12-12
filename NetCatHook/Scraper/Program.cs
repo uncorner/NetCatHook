@@ -1,4 +1,5 @@
 using NetCatHook.Scraper.App;
+using NetCatHook.Scraper.Infrastructure;
 
 namespace NetCatHook.Scraper;
 
@@ -24,7 +25,8 @@ public class Program
 
         await using var scheduler = new SimpleScheduler(
             app.Services.GetRequiredService<ILogger<SimpleScheduler>>(),
-            TimeSpan.FromHours(2) );
+            TimeSpan.FromHours(2),
+            new HtmlDownloader());
         scheduler.Start();
 
         app.Run();
