@@ -10,6 +10,8 @@ static class ServiceCollection
         services.AddTransient<IHtmlSource, HtmlDownloader>();
         services.AddTransient<WeatherHtmlParser>();
         services.AddTransient<SimpleScheduler>();
+
+        services.AddHostedService<SchedulerBackgroundService>();
     }
 
 }

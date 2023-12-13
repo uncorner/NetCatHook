@@ -22,7 +22,7 @@ namespace NetCatHook.Scraper.App
 
         public void Start(TimeSpan period)
         {
-            timer.Change(TimeSpan.FromSeconds(5), period);
+            timer.Change(TimeSpan.Zero, period);
         }
 
         private void Process(object? state)
@@ -41,7 +41,7 @@ namespace NetCatHook.Scraper.App
                 logger.LogError("Parsing failed");
                 return;
             }
-            
+
             logger.LogInformation($"Success parsing: {result.temp}");
         }
 
@@ -57,6 +57,7 @@ namespace NetCatHook.Scraper.App
 
             timer.Dispose();
             isDisposed = true;
+            logger.LogInformation("disposed");
         }
 
         public async ValueTask DisposeAsync()
