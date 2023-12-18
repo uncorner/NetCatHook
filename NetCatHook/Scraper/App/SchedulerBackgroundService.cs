@@ -9,16 +9,14 @@
             this.scheduler = scheduler;
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            if (!stoppingToken.IsCancellationRequested)
+            await Task.Run(() =>
             {
+                stoppingToken.Register(scheduler.Dispose);
+                // todo: take it from config
                 scheduler.Start(TimeSpan.FromHours(2));
-            }
-
-            stoppingToken.Register(scheduler.Dispose);
-
-            return Task.CompletedTask;
+            }, stoppingToken);
         }
 
         #region Dispose
