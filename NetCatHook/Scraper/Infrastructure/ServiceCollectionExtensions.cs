@@ -4,10 +4,11 @@ using NetCatHook.Scraper.App.Parsing;
 
 namespace NetCatHook.Scraper.Infrastructure;
 
-static class ServiceCollection
+static class ServiceCollectionExtensions
 {
     public static void AddCustomServices(this IServiceCollection services)
     {
+        services.AddHttpClient<TgBotHostedService>();
         services.AddSingleton<WeatherNotifyer>();
 
         services.AddTransient<IHtmlSource, HtmlDownloader>();
