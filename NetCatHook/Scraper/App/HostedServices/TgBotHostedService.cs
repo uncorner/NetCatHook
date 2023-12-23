@@ -53,25 +53,29 @@ class TgBotHostedService : IHostedService
         
         logger.LogInformation($"TgBotHostedService started: @{me.Username}");
 
-        weatherNotifyer.Event += WeatherNotifyer_Event;
+        weatherNotifyer.Event += HandleWeatherNotifyer;
     }
     
-    private async void WeatherNotifyer_Event(string message)
+    private async void HandleWeatherNotifyer(string message)
     {
         if (botClient is null)
         {
             return;
         }
 
+        var messageTasks = new List<Task>();
         foreach(var userChatId in userChatIds)
         {
-            await botClient.SendTextMessageAsync(
-            chatId: userChatId,
-            text: message);
+            var task = botClient.SendTextMessageAsync(
+                chatId: userChatId,
+                text: message);
+            messageTasks.Add(task);
         }
+
+        await Task.WhenAll(messageTasks);
     }
 
-    async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+    private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
     {
         // Only process Message updates: https://core.telegram.org/bots/api#message
         if (update.Message is not { } message)
@@ -84,7 +88,7 @@ class TgBotHostedService : IHostedService
         Console.WriteLine($"Received a '{messageText}' message in chat {chatId}.");
 
         // Echo received message text
-        Message sentMessage = await botClient.SendTextMessageAsync(
+        await botClient.SendTextMessageAsync(
             chatId: chatId,
             text: "You said:\n" + messageText,
             cancellationToken: cancellationToken);
@@ -92,7 +96,7 @@ class TgBotHostedService : IHostedService
         userChatIds.Add(chatId);
     }
 
-    Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+    private Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
     {
         var ErrorMessage =
         exception switch
@@ -109,7 +113,7 @@ class TgBotHostedService : IHostedService
     public Task StopAsync(CancellationToken cancellationToken)
     {
         //todo
-        weatherNotifyer.Event -= WeatherNotifyer_Event;
+        weatherNotifyer.Event -= HandleWeatherNotifyer;
         cts.Cancel();
         cts.Dispose();
         
