@@ -12,7 +12,7 @@ class TgBotHostedService : IHostedService
     private readonly WeatherNotifyer weatherNotifyer;
     private readonly HttpClient httpClient;
     private TelegramBotClient? botClient;
-    private CancellationTokenSource cts = new();
+    private CancellationTokenSource botCts = new();
     private IList<long> userChatIds = new List<long>();
 
     public TgBotHostedService(ILogger<TgBotHostedService> logger,
@@ -25,9 +25,9 @@ class TgBotHostedService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        logger.LogInformation("Starting TgBotHostedService");
+        logger.LogInformation("Starting Tg Bot");
 
-        Console.WriteLine("Enter TG secure token:");
+        Console.WriteLine("Enter Tg secure token:");
         var token = Console.ReadLine();
         botClient = new TelegramBotClient(token?.Trim() ?? "", httpClient);
 
@@ -42,20 +42,13 @@ class TgBotHostedService : IHostedService
             updateHandler: HandleUpdateAsync,
             pollingErrorHandler: HandlePollingErrorAsync,
             receiverOptions: receiverOptions,
-            cancellationToken: cts.Token
+            cancellationToken: botCts.Token
         );
 
-        var me = await botClient.GetMeAsync();
-
-        //Console.WriteLine($"Start listening for @{me.Username}");
-        //Console.ReadLine();
-
-        // Send cancellation request to stop bot
-        //cts.Cancel();
-        
-        logger.LogInformation($"TgBotHostedService started: @{me.Username}");
-
+        var botUser = await botClient.GetMeAsync(cancellationToken);
         weatherNotifyer.Event += HandleWeatherNotifyer;
+
+        logger.LogInformation($"Tg Bot @{botUser.Username} started");
     }
     
     private async void HandleWeatherNotifyer(string message)
@@ -113,12 +106,11 @@ class TgBotHostedService : IHostedService
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        //todo
         weatherNotifyer.Event -= HandleWeatherNotifyer;
-        cts.Cancel();
-        cts.Dispose();
-        
-        logger.LogInformation("TgBotHostedService stopped");
+        botCts.Cancel();
+        botCts.Dispose();
+
+        logger.LogInformation("Tg Bot stopped");
         return Task.CompletedTask;
     }
 
