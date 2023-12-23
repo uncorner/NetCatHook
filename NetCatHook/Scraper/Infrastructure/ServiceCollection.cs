@@ -8,6 +8,8 @@ static class ServiceCollection
 {
     public static void AddCustomServices(this IServiceCollection services)
     {
+        services.AddSingleton<WeatherNotifyer>();
+
         services.AddTransient<IHtmlSource, HtmlDownloader>();
         services.AddTransient<WeatherHtmlParser>();
         services.AddTransient<SimpleScheduler>();

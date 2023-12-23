@@ -9,12 +9,15 @@ namespace NetCatHook.Scraper.App.HostedServices;
 class TgBotHostedService : IHostedService
 {
     private readonly ILogger<TgBotHostedService> logger;
+    private readonly WeatherNotifyer weatherNotifyer;
     private TelegramBotClient? botClient;
     private CancellationTokenSource cts = new();
+    private IList<long> userChatIds = new List<long>();
 
-    public TgBotHostedService(ILogger<TgBotHostedService> logger)
+    public TgBotHostedService(ILogger<TgBotHostedService> logger, WeatherNotifyer weatherNotifyer)
     {
         this.logger = logger;
+        this.weatherNotifyer = weatherNotifyer;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -23,6 +26,7 @@ class TgBotHostedService : IHostedService
 
         Console.WriteLine("Enter TG secure token:");
         var token = Console.ReadLine();
+        // todo: pass HttpClient
         botClient = new TelegramBotClient(token?.Trim() ?? "");
 
         // StartReceiving does not block the caller thread. Receiving is done on the ThreadPool.
@@ -39,12 +43,6 @@ class TgBotHostedService : IHostedService
             cancellationToken: cts.Token
         );
 
-        //>>>>
-        //Message message = await botClient.SendTextMessageAsync(
-        //    chatId: chatId,
-        //text: "Hello, World!",
-        //    cancellationToken: cts);
-
         var me = await botClient.GetMeAsync();
 
         //Console.WriteLine($"Start listening for @{me.Username}");
@@ -54,6 +52,23 @@ class TgBotHostedService : IHostedService
         //cts.Cancel();
         
         logger.LogInformation($"TgBotHostedService started: @{me.Username}");
+
+        weatherNotifyer.Event += WeatherNotifyer_Event;
+    }
+    
+    private async void WeatherNotifyer_Event(string message)
+    {
+        if (botClient is null)
+        {
+            return;
+        }
+
+        foreach(var userChatId in userChatIds)
+        {
+            await botClient.SendTextMessageAsync(
+            chatId: userChatId,
+            text: message);
+        }
     }
 
     async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -66,7 +81,6 @@ class TgBotHostedService : IHostedService
             return;
 
         var chatId = message.Chat.Id;
-
         Console.WriteLine($"Received a '{messageText}' message in chat {chatId}.");
 
         // Echo received message text
@@ -74,6 +88,8 @@ class TgBotHostedService : IHostedService
             chatId: chatId,
             text: "You said:\n" + messageText,
             cancellationToken: cancellationToken);
+
+        userChatIds.Add(chatId);
     }
 
     Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
@@ -93,9 +109,10 @@ class TgBotHostedService : IHostedService
     public Task StopAsync(CancellationToken cancellationToken)
     {
         //todo
+        weatherNotifyer.Event -= WeatherNotifyer_Event;
         cts.Cancel();
         cts.Dispose();
-
+        
         logger.LogInformation("TgBotHostedService stopped");
         return Task.CompletedTask;
     }

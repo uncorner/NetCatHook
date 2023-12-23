@@ -9,20 +9,22 @@ namespace NetCatHook.Scraper.App
         private readonly ILogger<SimpleScheduler> logger;
         private readonly IHtmlSource htmlSource;
         private readonly WeatherHtmlParser parser;
+        private readonly WeatherNotifyer notifyer;
         private readonly Timer timer;
 
         public SimpleScheduler(ILogger<SimpleScheduler> logger,
-            IHtmlSource htmlSource, WeatherHtmlParser parser)
+            IHtmlSource htmlSource, WeatherHtmlParser parser, WeatherNotifyer notifyer)
         {
             timer = new Timer(new TimerCallback(Process));
             this.logger = logger;
             this.htmlSource = htmlSource;
             this.parser = parser;
+            this.notifyer = notifyer;
         }
 
         public void Start(TimeSpan period)
         {
-            timer.Change(TimeSpan.Zero, period);
+            timer.Change(TimeSpan.FromSeconds(60), period);
         }
 
         private void Process(object? state)
@@ -42,7 +44,9 @@ namespace NetCatHook.Scraper.App
                 return;
             }
 
-            logger.LogInformation($"Success parsing: {result.temp}");
+            var message = $"Температура воздуха {result.temp} гр.";
+            logger.LogInformation(message);
+            notifyer.SendMessage(message);
         }
 
         #region Dispose, IAsyncDisposable
