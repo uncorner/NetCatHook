@@ -22,9 +22,9 @@ namespace NetCatHook.Scraper.App
             this.notifyer = notifyer;
         }
 
-        public void Start(TimeSpan period)
+        public void Start(TimeSpan timeout)
         {
-            timer.Change(TimeSpan.FromSeconds(60), period);
+            timer.Change(TimeSpan.FromSeconds(60), timeout);
         }
 
         private void Process(object? state)

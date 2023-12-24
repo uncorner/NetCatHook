@@ -11,25 +11,24 @@ class TgBotHostedService : IHostedService
     private readonly ILogger<TgBotHostedService> logger;
     private readonly WeatherNotifyer weatherNotifyer;
     private readonly HttpClient httpClient;
+    private readonly IConfiguration configuration;
     private TelegramBotClient? botClient;
     private CancellationTokenSource botCts = new();
     private IList<long> userChatIds = new List<long>();
 
     public TgBotHostedService(ILogger<TgBotHostedService> logger,
-        WeatherNotifyer weatherNotifyer, HttpClient httpClient)
+        WeatherNotifyer weatherNotifyer, HttpClient httpClient, IConfiguration configuration)
     {
         this.logger = logger;
         this.weatherNotifyer = weatherNotifyer;
         this.httpClient = httpClient;
+        this.configuration = configuration;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         logger.LogInformation("Starting Tg Bot");
-
-        Console.WriteLine("Enter Tg secure token:");
-        var token = Console.ReadLine();
-        botClient = new TelegramBotClient(token?.Trim() ?? "", httpClient);
+        botClient = new TelegramBotClient(configuration.GetTgBotSecureToken(), httpClient);
 
         // StartReceiving does not block the caller thread. Receiving is done on the ThreadPool.
         ReceiverOptions receiverOptions = new()

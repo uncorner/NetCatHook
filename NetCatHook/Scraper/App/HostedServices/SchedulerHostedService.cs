@@ -3,20 +3,29 @@
 class SchedulerHostedService : BackgroundService
 {
     private readonly SimpleScheduler scheduler;
+    private readonly IConfiguration configuration;
+    private readonly ILogger<SchedulerHostedService> logger;
 
-    public SchedulerHostedService(SimpleScheduler scheduler)
+    public SchedulerHostedService(SimpleScheduler scheduler, IConfiguration configuration,
+        ILogger<SchedulerHostedService> logger)
     {
         this.scheduler = scheduler;
+        this.configuration = configuration;
+        this.logger = logger;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await Task.Run(() =>
+        if (stoppingToken.IsCancellationRequested)
         {
-            stoppingToken.Register(scheduler.Dispose);
-            // todo: take it from config
-            scheduler.Start(TimeSpan.FromHours(2));
-        }, stoppingToken);
+            return Task.CompletedTask;
+        }
+
+        var timeout = configuration.GetParsingSchedulerTimeoutInMinutes();
+        scheduler.Start(TimeSpan.FromMinutes(timeout));
+        logger.LogInformation($"Parsing scheduler starter with timeout {timeout} minutes");
+
+        return Task.CompletedTask;
     }
 
     #region Dispose
