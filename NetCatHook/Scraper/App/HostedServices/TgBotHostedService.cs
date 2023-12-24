@@ -80,8 +80,6 @@ class TgBotHostedService : IHostedService
             return;
 
         var chatId = message.Chat.Id;
-        Console.WriteLine($"Received a '{messageText}' message in chat {chatId}.");
-
         await botClient.SendTextMessageAsync(
             chatId: chatId,
             text: "You said:\n" + messageText,
@@ -92,15 +90,14 @@ class TgBotHostedService : IHostedService
 
     private Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
     {
-        var ErrorMessage =
-        exception switch
+        var errorMessage = exception switch
         {
             ApiRequestException apiRequestException
                 => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
             _ => exception.ToString()
         };
 
-        Console.WriteLine(ErrorMessage);
+        logger.LogError(errorMessage);
         return Task.CompletedTask;
     }
 
