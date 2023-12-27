@@ -18,9 +18,8 @@ class TgBotHostedService : IHostedService
     private readonly IUnitOfWorkFactory unitOfWorkFactory;
     private TelegramBotClient? botClient;
     private CancellationTokenSource botCts = new();
-    //private IList<long> userChatIds = new List<long>();
 
-    private ConcurrentDictionary<long, bool> chatIds = new();
+    private ConcurrentDictionary<long, bool> cachedChatIds = new();
 
     public TgBotHostedService(ILogger<TgBotHostedService> logger,
         WeatherNotifyer weatherNotifyer, HttpClient httpClient,
@@ -55,29 +54,32 @@ class TgBotHostedService : IHostedService
         var botUser = await botClient.GetMeAsync(cancellationToken);
         weatherNotifyer.Event += HandleWeatherNotifyer;
 
-        //>>>>
-        await using(var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
-        {
-            var repository = unitOfWork.CreateTgBotChatRepository();
-            var chats = await repository.GetAllAsync();
-            var chatIdPairs = chats.Select(chat =>
-                new KeyValuePair<long, bool>(chat.ChatId, default));
-
-            chatIds = new ConcurrentDictionary<long, bool>(chatIdPairs);
-        }
+        cachedChatIds = await LoadBotChatIds();
+        logger.LogInformation($"Found {cachedChatIds.Count()} Tg Bot chats");
 
         logger.LogInformation($"Tg Bot @{botUser.Username} started");
     }
-    
+
+    private async Task<ConcurrentDictionary<long, bool>> LoadBotChatIds()
+    {
+        await using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
+        var repository = unitOfWork.CreateTgBotChatRepository();
+        var chats = await repository.GetAllAsync();
+        var chatIdPairs = chats.Select(chat =>
+            new KeyValuePair<long, bool>(chat.ChatId, default)).ToArray();
+
+        return new ConcurrentDictionary<long, bool>(chatIdPairs);
+    }
+
     private async void HandleWeatherNotifyer(string message)
     {
-        if (botClient is null || chatIds.Count == 0)
+        if (botClient is null || cachedChatIds.Count == 0)
         {
             return;
         }
 
         var messageTasks = new List<Task>();
-        var copyOfChatIds = chatIds.Keys;
+        var copyOfChatIds = cachedChatIds.Keys;
         foreach (var chatId in copyOfChatIds)
         {
             var task = botClient.SendTextMessageAsync(
@@ -104,9 +106,7 @@ class TgBotHostedService : IHostedService
             text: "You said:\n" + messageText,
             cancellationToken: cancellationToken);
 
-        //chatIds.Add(chatId);
-        // >>>>>>>>>>>
-        var isNewChat = chatIds.TryAdd(chatId, default);
+        var isNewChat = cachedChatIds.TryAdd(chatId, default);
         if (isNewChat)
         {
             await SaveChatIfNotExists(chatId);
