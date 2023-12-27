@@ -1,4 +1,7 @@
-﻿using Telegram.Bot;
+﻿using NetCatHook.Scraper.App.Entities;
+using NetCatHook.Scraper.App.Repository;
+using System.Collections.Concurrent;
+using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
@@ -12,17 +15,22 @@ class TgBotHostedService : IHostedService
     private readonly WeatherNotifyer weatherNotifyer;
     private readonly HttpClient httpClient;
     private readonly IConfiguration configuration;
+    private readonly IUnitOfWorkFactory unitOfWorkFactory;
     private TelegramBotClient? botClient;
     private CancellationTokenSource botCts = new();
-    private IList<long> userChatIds = new List<long>();
+    //private IList<long> userChatIds = new List<long>();
+
+    private ConcurrentDictionary<long, bool> chatIds = new();
 
     public TgBotHostedService(ILogger<TgBotHostedService> logger,
-        WeatherNotifyer weatherNotifyer, HttpClient httpClient, IConfiguration configuration)
+        WeatherNotifyer weatherNotifyer, HttpClient httpClient,
+        IConfiguration configuration, IUnitOfWorkFactory unitOfWorkFactory)
     {
         this.logger = logger;
         this.weatherNotifyer = weatherNotifyer;
         this.httpClient = httpClient;
         this.configuration = configuration;
+        this.unitOfWorkFactory = unitOfWorkFactory;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -47,21 +55,33 @@ class TgBotHostedService : IHostedService
         var botUser = await botClient.GetMeAsync(cancellationToken);
         weatherNotifyer.Event += HandleWeatherNotifyer;
 
+        //>>>>
+        await using(var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
+        {
+            var repository = unitOfWork.CreateTgBotChatRepository();
+            var chats = await repository.GetAllAsync();
+            var chatIdPairs = chats.Select(chat =>
+                new KeyValuePair<long, bool>(chat.ChatId, default));
+
+            chatIds = new ConcurrentDictionary<long, bool>(chatIdPairs);
+        }
+
         logger.LogInformation($"Tg Bot @{botUser.Username} started");
     }
     
     private async void HandleWeatherNotifyer(string message)
     {
-        if (botClient is null || userChatIds.Count == 0)
+        if (botClient is null || chatIds.Count == 0)
         {
             return;
         }
 
         var messageTasks = new List<Task>();
-        foreach(var userChatId in userChatIds)
+        var copyOfChatIds = chatIds.Keys;
+        foreach (var chatId in copyOfChatIds)
         {
             var task = botClient.SendTextMessageAsync(
-                chatId: userChatId,
+                chatId: chatId,
                 text: message);
             messageTasks.Add(task);
         }
@@ -84,7 +104,27 @@ class TgBotHostedService : IHostedService
             text: "You said:\n" + messageText,
             cancellationToken: cancellationToken);
 
-        userChatIds.Add(chatId);
+        //chatIds.Add(chatId);
+        // >>>>>>>>>>>
+        var isNewChat = chatIds.TryAdd(chatId, default);
+        if (isNewChat)
+        {
+            await SaveChatIfNotExists(chatId);
+        }
+    }
+
+    private async Task SaveChatIfNotExists(long chatId)
+    {
+        await using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
+        var repository = unitOfWork.CreateTgBotChatRepository();
+
+        var savedChat = await repository.GetByChatId(chatId);
+        if (savedChat is null)
+        {
+            var tgBotChat = new TgBotChat() { ChatId = chatId };
+            await repository.AddAsync(tgBotChat);
+            await unitOfWork.SaveChangesAsync();
+        }
     }
 
     private Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)

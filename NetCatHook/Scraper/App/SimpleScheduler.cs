@@ -24,7 +24,7 @@ namespace NetCatHook.Scraper.App
 
         public void Start(TimeSpan timeout)
         {
-            timer.Change(TimeSpan.FromSeconds(60), timeout);
+            timer.Change(TimeSpan.FromSeconds(5), timeout);
         }
 
         private void Process(object? state)

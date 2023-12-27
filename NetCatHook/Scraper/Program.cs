@@ -1,4 +1,4 @@
-using NetCatHook.Scraper.Infrastructure;
+﻿using NetCatHook.Scraper.Infrastructure;
 
 namespace NetCatHook.Scraper;
 
@@ -10,7 +10,7 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddControllers();
-        builder.Services.AddCustomServices();
+        builder.Services.AddCustomServices(builder.Configuration);
         
         var app = builder.Build();
 
