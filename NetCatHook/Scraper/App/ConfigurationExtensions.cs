@@ -12,4 +12,9 @@ static class ConfigurationExtensions
         return config.GetValue<int>("ParsingSchedulerTimeoutInMinutes");
     }
 
+    public static string GetDbConnectionString(this IConfiguration config)
+    {
+        return config.GetConnectionString("Default")!;
+    }
+
 }

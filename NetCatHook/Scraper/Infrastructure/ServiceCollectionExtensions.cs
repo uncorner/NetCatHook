@@ -13,10 +13,7 @@ static class ServiceCollectionExtensions
         ConfigurationManager configuration)
     {
         services.AddTransient<IUnitOfWorkFactory, UnitOfWorkFactory>();
-
-        // TODO
-        var connectionString = configuration.GetConnectionString("Default")!;
-        services.AddDbContextFactory<ApplicationDbContext>(opt => opt.UseNpgsql(connectionString));
+        services.AddDbContextFactory<ApplicationDbContext>();
 
         services.AddHttpClient<TgBotHostedService>();
         services.AddSingleton<WeatherNotifyer>();

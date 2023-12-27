@@ -55,7 +55,7 @@ class TgBotHostedService : IHostedService
         weatherNotifyer.Event += HandleWeatherNotifyer;
 
         cachedChatIds = await LoadBotChatIds();
-        logger.LogInformation($"Found {cachedChatIds.Count()} Tg Bot chats");
+        logger.LogInformation($"Loaded Tg Bot chats: {cachedChatIds.Count()}");
 
         logger.LogInformation($"Tg Bot @{botUser.Username} started");
     }
