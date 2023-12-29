@@ -20,7 +20,7 @@ static class ServiceCollectionExtensions
 
         services.AddTransient<IHtmlSource, HtmlDownloader>();
         services.AddTransient<WeatherHtmlParser>();
-        services.AddTransient<SimpleScheduler>();
+        services.AddTransient<TimeoutScheduler>();
 
         services.AddHostedService<TgBotHostedService>();
         services.AddHostedService<SchedulerHostedService>();

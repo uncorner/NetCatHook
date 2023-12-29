@@ -3,16 +3,16 @@ using NetCatHook.Scraper.App.Parsing;
 
 namespace NetCatHook.Scraper.App
 {
-    class SimpleScheduler : IDisposable, IAsyncDisposable
+    class TimeoutScheduler : IDisposable, IAsyncDisposable
     {
         public const string TargetUrl = "https://www.gismeteo.ru/weather-ryazan-4394/now/";
-        private readonly ILogger<SimpleScheduler> logger;
+        private readonly ILogger<TimeoutScheduler> logger;
         private readonly IHtmlSource htmlSource;
         private readonly WeatherHtmlParser parser;
         private readonly WeatherNotifyer notifyer;
         private readonly Timer timer;
 
-        public SimpleScheduler(ILogger<SimpleScheduler> logger,
+        public TimeoutScheduler(ILogger<TimeoutScheduler> logger,
             IHtmlSource htmlSource, WeatherHtmlParser parser, WeatherNotifyer notifyer)
         {
             timer = new Timer(new TimerCallback(Process));
@@ -38,13 +38,13 @@ namespace NetCatHook.Scraper.App
             }
 
             var result = parser.TryParse(html);
-            if (!result.success)
+            if (!result.IsSuccess)
             {
                 logger.LogError("Parsing failed");
                 return;
             }
 
-            var message = $"Температура воздуха {result.temp} гр.";
+            var message = $"Температура воздуха {result.TemperatureAir} гр.";
             logger.LogInformation(message);
             notifyer.SendMessage(message);
         }

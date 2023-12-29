@@ -2,11 +2,11 @@
 
 class SchedulerHostedService : BackgroundService
 {
-    private readonly SimpleScheduler scheduler;
+    private readonly TimeoutScheduler scheduler;
     private readonly IConfiguration configuration;
     private readonly ILogger<SchedulerHostedService> logger;
 
-    public SchedulerHostedService(SimpleScheduler scheduler, IConfiguration configuration,
+    public SchedulerHostedService(TimeoutScheduler scheduler, IConfiguration configuration,
         ILogger<SchedulerHostedService> logger)
     {
         this.scheduler = scheduler;
