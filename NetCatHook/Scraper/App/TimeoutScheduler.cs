@@ -38,7 +38,7 @@ namespace NetCatHook.Scraper.App
             }
 
             var result = parser.TryParse(html);
-            if (!result.IsSuccess)
+            if (!result.Processed)
             {
                 logger.LogError("Parsing failed");
                 return;

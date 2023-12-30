@@ -18,7 +18,7 @@ public partial class WeatherHtmlParserTest
         var parser = new WeatherHtmlParser();
         var result = await parser.TryParseAsync(htmlPart);
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.Processed);
         Assert.NotNull(result.TemperatureAir);
         Assert.Equal(-13, result.TemperatureAir);
 
@@ -46,7 +46,7 @@ public partial class WeatherHtmlParserTest
         var parser = new WeatherHtmlParser();
         var result = await parser.TryParseAsync(htmlPart2);
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.Processed);
         Assert.NotNull(result.TemperatureAir);
         Assert.NotNull(result.Description);
         Assert.NotNull(result.Humidity);

@@ -23,7 +23,7 @@ namespace NetCatHook.ScraperTests.App.Parsing
             var parser = new WeatherHtmlParser();
             var result = await parser.TryParseAsync(html);
 
-            Assert.True(result.IsSuccess);
+            Assert.True(result.Processed);
             output.WriteLine(result.ToString());
         }
 

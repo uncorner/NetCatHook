@@ -26,12 +26,12 @@ class WeatherHtmlParser
         public const string windGust = nameof(windGust);
     }
 
-    public async Task<WeatherlParsingResult> TryParseAsync(string html)
+    public async Task<WeatherData> TryParseAsync(string html)
     {
         return await Task.Run(() => TryParse(html));
     }
 
-    public WeatherlParsingResult TryParse(string html)
+    public WeatherData TryParse(string html)
     {
         var regex = new Regex(pattern, RegexOptions.Multiline
             | RegexOptions.CultureInvariant | RegexOptions.Compiled);
@@ -62,11 +62,11 @@ class WeatherHtmlParser
             strValue = match.Groups[Grp.windGust].Value;
             var windGust = ParseInt(strValue);
 
-            return new WeatherlParsingResult(true, temperatureAir, description,
+            return new WeatherData(true, temperatureAir, description,
                 humidity, pressure, windDirection, windSpeed, windGust);
         }
 
-        return new WeatherlParsingResult(false);
+        return new WeatherData(false);
     }
 
     private static int? ParseInt(string? strValue)
