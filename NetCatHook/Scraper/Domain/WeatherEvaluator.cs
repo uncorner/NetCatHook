@@ -1,13 +1,12 @@
-﻿using NetCatHook.Scraper.App.Parsing;
-using System.Text;
+﻿using System.Text;
 
-namespace NetCatHook.Scraper.App;
+namespace NetCatHook.Scraper.Domain;
 
 record class WeatherEvaluatorData(bool Processed, string? TextMessage);
 
 static class WeatherEvaluator
 {
-    
+
     public static WeatherEvaluatorData Evaluate(WeatherData data)
     {
         if (!data.Processed)

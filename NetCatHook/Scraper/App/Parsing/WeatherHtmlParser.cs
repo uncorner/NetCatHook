@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using NetCatHook.Scraper.Domain;
 
 namespace NetCatHook.Scraper.App.Parsing;
 
