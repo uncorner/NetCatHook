@@ -31,7 +31,11 @@ static class WeatherEvaluator
     private static void ProcessTemperatureAir(StringBuilder message, int temperatureAir)
     {
         StringBuilder tempInfo = new();
-        if (temperatureAir <= -7)
+        if (temperatureAir >= 1 && temperatureAir <= 2)
+        {
+            tempInfo.Append("На улице слякоть.");
+        }
+        else if (temperatureAir <= -7)
         {
             if (temperatureAir <= -15)
             {
@@ -42,9 +46,10 @@ static class WeatherEvaluator
                 tempInfo.Append("На улице холодно, мороз.");
             }
         }
+
         if (tempInfo.Length > 0)
         {
-            tempInfo.Append($" Температура воздуха {temperatureAir} гр.ц.");
+            tempInfo.Append($" Температура воздуха {temperatureAir} °C");
             message.AppendLine(tempInfo.ToString());
         }
     }

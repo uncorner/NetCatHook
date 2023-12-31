@@ -35,7 +35,12 @@ class TgBotHostedService : IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         logger.LogInformation("Starting Tg Bot");
-        botClient = new TelegramBotClient(configuration.GetTgBotSecureToken(), httpClient);
+        var secureToken = configuration.GetTgBotSecureToken();
+        if (string.IsNullOrWhiteSpace(secureToken))
+        {
+            throw new ApplicationException("Tg Bot secure token not found");
+        }
+        botClient = new TelegramBotClient(secureToken, httpClient);
 
         // StartReceiving does not block the caller thread. Receiving is done on the ThreadPool.
         ReceiverOptions receiverOptions = new()

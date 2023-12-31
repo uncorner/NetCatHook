@@ -1,5 +1,5 @@
-﻿
-using NetCatHook.Scraper.App.Parsing;
+﻿using NetCatHook.Scraper.App.Parsing;
+using NetCatHook.Scraper.Domain;
 
 namespace NetCatHook.Scraper.App
 {
@@ -37,16 +37,25 @@ namespace NetCatHook.Scraper.App
                 return;
             }
 
-            var result = parser.TryParse(html);
-            if (!result.Processed)
+            var weatherData = parser.TryParse(html);
+            if (weatherData.Processed)
+            {
+                var result = WeatherEvaluator.Evaluate(weatherData);
+                if (result.Processed && result.TextMessage is not null)
+                {
+                    notifyer.SendMessage(result.TextMessage);
+                    logger.LogInformation("Weather message was sent to Tg chats");
+                }
+                else
+                {
+                    logger.LogInformation("Weather message was NOT sent to Tg chats");
+                }
+            }
+            else
             {
                 logger.LogError("Parsing failed");
                 return;
             }
-
-            var message = $"Температура воздуха {result.TemperatureAir} гр.";
-            logger.LogInformation(message);
-            notifyer.SendMessage(message);
         }
 
         #region Dispose, IAsyncDisposable
