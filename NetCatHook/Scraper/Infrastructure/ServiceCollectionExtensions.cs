@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using NetCatHook.Scraper.App;
+﻿using NetCatHook.Scraper.App;
 using NetCatHook.Scraper.App.HostedServices;
 using NetCatHook.Scraper.App.HtmlProcessing;
 using NetCatHook.Scraper.App.Parsing;
@@ -21,7 +20,7 @@ static class ServiceCollectionExtensions
         services.AddSingleton<WeatherNotifyer>();
 
         services.AddTransient<IHtmlSource, ChromeHtmlDownloader>();
-        services.AddTransient<WeatherHtmlParser>();
+        services.AddTransient<IWeatherHtmlParser, WeatherHtmlParser>();
         services.AddTransient<TimeoutScheduler>();
 
         services.AddHostedService<TgBotHostedService>();

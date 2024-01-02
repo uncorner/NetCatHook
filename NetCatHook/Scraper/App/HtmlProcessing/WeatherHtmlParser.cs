@@ -1,9 +1,10 @@
 ﻿using System.Text.RegularExpressions;
+using NetCatHook.Scraper.App.HtmlProcessing;
 using NetCatHook.Scraper.Domain;
 
 namespace NetCatHook.Scraper.App.Parsing;
 
-class WeatherHtmlParser
+class WeatherHtmlParser : IWeatherHtmlParser
 {
     private const string pattern =
         @"M\.state\.weather\.cw = \{"
@@ -32,7 +33,7 @@ class WeatherHtmlParser
         return await Task.Run(() => TryParse(html));
     }
 
-    public WeatherData TryParse(string html)
+    private WeatherData TryParse(string html)
     {
         var regex = new Regex(pattern, RegexOptions.Multiline
             | RegexOptions.CultureInvariant | RegexOptions.Compiled);

@@ -9,12 +9,12 @@ namespace NetCatHook.Scraper.App
         public const string TargetUrl = "https://www.gismeteo.ru/weather-ryazan-4394/now/";
         private readonly ILogger<TimeoutScheduler> logger;
         private readonly IHtmlSource htmlSource;
-        private readonly WeatherHtmlParser parser;
+        private readonly IWeatherHtmlParser parser;
         private readonly WeatherNotifyer notifyer;
         private readonly Timer timer;
 
         public TimeoutScheduler(ILogger<TimeoutScheduler> logger,
-            IHtmlSource htmlSource, WeatherHtmlParser parser, WeatherNotifyer notifyer)
+            IHtmlSource htmlSource, IWeatherHtmlParser parser, WeatherNotifyer notifyer)
         {
             timer = new Timer(new TimerCallback(Process));
             this.logger = logger;
@@ -40,7 +40,7 @@ namespace NetCatHook.Scraper.App
                     throw new NullReferenceException("html is null");
                 }
 
-                var weatherData = parser.TryParse(html);
+                var weatherData = await parser.TryParseAsync(html);
                 if (weatherData.Processed)
                 {
                     logger.LogInformation("Parsing html succeeded");
