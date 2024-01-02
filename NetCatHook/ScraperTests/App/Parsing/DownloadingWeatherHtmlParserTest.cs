@@ -6,7 +6,7 @@ namespace NetCatHook.ScraperTests.App.Parsing
 {
     public class DownloadingWeatherHtmlParserTest
     {
-        public const string TargetUrl = "https://www.gismeteo.ru/weather-ryazan-4394/now/";
+        public const string TargetUrl = "https://www.gismeteo.ru/weather-moscow-4368/now/";
         private readonly ITestOutputHelper output;
 
         public DownloadingWeatherHtmlParserTest(ITestOutputHelper output)
@@ -17,7 +17,7 @@ namespace NetCatHook.ScraperTests.App.Parsing
         [Fact]
         public async Task TestDownloadAndParse()
         {
-            var downloader = new HtmlDownloader();
+            var downloader = new ChromeHtmlDownloader();
             var html = await downloader.GetHtmlDataAsync(TargetUrl);
 
             var parser = new WeatherHtmlParser();

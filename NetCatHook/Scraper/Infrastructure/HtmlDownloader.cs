@@ -25,7 +25,6 @@ class HtmlDownloader : IHtmlSource
     public async Task<string> GetHtmlDataAsync(string url)
     {
         var httpClient = new HttpClient();
-        // Accept todo
         httpClient.DefaultRequestHeaders.Accept.Clear();
         httpClient.DefaultRequestHeaders.Add("User-Agent", GetRandomUserAgent());
 
