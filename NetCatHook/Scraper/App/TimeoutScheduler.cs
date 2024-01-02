@@ -27,34 +27,43 @@ namespace NetCatHook.Scraper.App
             timer.Change(TimeSpan.FromSeconds(5), timeout);
         }
 
-        private void Process(object? state)
+        private async void Process(object? state)
         {
-            logger.LogInformation("Start processing");
-            var html = htmlSource.GetHtmlDataAsync(TargetUrl).Result;
-            if (html is null)
-            {
-                logger.LogError("html is null");
-                return;
-            }
+            logger.LogInformation("Start html parsing");
 
-            var weatherData = parser.TryParse(html);
-            if (weatherData.Processed)
+            try
             {
-                var result = WeatherEvaluator.Evaluate(weatherData);
-                if (result.Processed && result.TextMessage is not null)
+                var html = await htmlSource.GetHtmlDataAsync(TargetUrl);
+                if (html is null)
                 {
-                    notifyer.SendMessage(result.TextMessage);
-                    logger.LogInformation("Weather message was sent to Tg chats");
+                    throw new NullReferenceException("html is null");
+                }
+
+                var weatherData = parser.TryParse(html);
+                if (weatherData.Processed)
+                {
+                    logger.LogInformation("Parsing html succeeded");
+                    var result = WeatherEvaluator.Evaluate(weatherData);
+
+                    if (result.Processed && result.TextMessage is not null)
+                    {
+                        notifyer.SendMessage(result.TextMessage);
+                        logger.LogInformation("Weather message was sent to Tg chats");
+                    }
+                    else
+                    {
+                        logger.LogError("Weather data is not processed");
+                    }
                 }
                 else
                 {
-                    logger.LogInformation("Weather message was NOT sent to Tg chats");
+                    logger.LogError("Parsing failed");
+                    return;
                 }
             }
-            else
+            catch (Exception ex)
             {
-                logger.LogError("Parsing failed");
-                return;
+                logger.LogError($"Parsing failed. Error: {ex.Message}, Inner: {ex.InnerException?.Message ?? "none"}");
             }
         }
 

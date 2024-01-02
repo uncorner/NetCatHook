@@ -18,7 +18,7 @@ static class ServiceCollectionExtensions
         services.AddHttpClient<TgBotHostedService>();
         services.AddSingleton<WeatherNotifyer>();
 
-        services.AddTransient<IHtmlSource, HtmlDownloader>();
+        services.AddTransient<IHtmlSource, ChromeHtmlDownloader>();
         services.AddTransient<WeatherHtmlParser>();
         services.AddTransient<TimeoutScheduler>();
 
