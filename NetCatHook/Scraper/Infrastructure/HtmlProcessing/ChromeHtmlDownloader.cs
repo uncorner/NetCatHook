@@ -1,7 +1,7 @@
-﻿using NetCatHook.Scraper.App;
+﻿using NetCatHook.Scraper.App.HtmlProcessing;
 using PuppeteerSharp;
 
-namespace NetCatHook.Scraper.Infrastructure;
+namespace NetCatHook.Scraper.Infrastructure.HtmlProcessing;
 
 public class ChromeHtmlDownloader : IHtmlSource
 {

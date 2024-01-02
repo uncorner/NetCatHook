@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NetCatHook.Scraper.App;
 using NetCatHook.Scraper.App.HostedServices;
+using NetCatHook.Scraper.App.HtmlProcessing;
 using NetCatHook.Scraper.App.Parsing;
 using NetCatHook.Scraper.App.Repository;
+using NetCatHook.Scraper.Infrastructure.HtmlProcessing;
 using NetCatHook.Scraper.Infrastructure.Repository;
 
 namespace NetCatHook.Scraper.Infrastructure;

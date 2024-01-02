@@ -1,4 +1,4 @@
-﻿namespace NetCatHook.Scraper.App;
+﻿namespace NetCatHook.Scraper.App.HtmlProcessing;
 
 interface IHtmlSource
 {

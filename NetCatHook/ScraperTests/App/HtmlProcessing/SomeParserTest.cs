@@ -1,6 +1,6 @@
 ﻿using NetCatHook.Scraper.App.Parsing;
 
-namespace NetCatHook.ScraperTests.App.Parsing;
+namespace NetCatHook.ScraperTests.App.HtmlProcessing;
 
 public class SomeParserTest
 {

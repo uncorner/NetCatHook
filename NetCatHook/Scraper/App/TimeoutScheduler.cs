@@ -1,4 +1,5 @@
-﻿using NetCatHook.Scraper.App.Parsing;
+﻿using NetCatHook.Scraper.App.HtmlProcessing;
+using NetCatHook.Scraper.App.Parsing;
 using NetCatHook.Scraper.Domain;
 
 namespace NetCatHook.Scraper.App
