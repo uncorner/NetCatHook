@@ -17,4 +17,9 @@ static class ConfigurationExtensions
         return config.GetConnectionString("Default")!;
     }
 
+    public static string GetWeatherParsingUrl(this IConfiguration config)
+    {
+        return config["WeatherParsingUrl"]!;
+    }
+
 }
