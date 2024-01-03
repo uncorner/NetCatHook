@@ -14,7 +14,7 @@ public class ChromeHtmlDownloader : IHtmlSource
         var options = new LaunchOptions()
         {
             ExecutablePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe",
-            Headless = true,
+            Headless = false,
             SlowMo = 10,
             Timeout = 60000
         };
