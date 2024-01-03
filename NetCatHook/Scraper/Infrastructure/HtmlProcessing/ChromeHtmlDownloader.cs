@@ -15,7 +15,8 @@ public class ChromeHtmlDownloader : IHtmlSource
         {
             ExecutablePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe",
             Headless = true,
-            SlowMo = 10
+            SlowMo = 10,
+            Timeout = 60000
         };
         await using var browser = await Puppeteer.LaunchAsync(options);
         await using var page = await browser.NewPageAsync();
