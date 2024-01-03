@@ -19,13 +19,17 @@ static class WeatherEvaluator
         {
             ProcessTemperatureAir(message, data.TemperatureAir.Value);
         }
-        if (data.Pressure is not null)
-        {
-            ProcessPressure(message, data.Pressure.Value);
-        }
         if (data.WindSpeed is not null)
         {
             ProcessWind(message, data.WindSpeed.Value, data.WindGust);
+        }
+        if (data.Humidity is not null)
+        {
+            ProcessHumidity(message, data.Humidity.Value);
+        }
+        if (data.Pressure is not null)
+        {
+            ProcessPressure(message, data.Pressure.Value);
         }
 
         if (message.Length > 0)
@@ -67,7 +71,7 @@ static class WeatherEvaluator
         const int normalPressure = 745;
         const int dispersion = 7;
         StringBuilder tempInfo = new();
-        
+
         if (value >= (normalPressure + dispersion))
         {
             tempInfo.Append($"Повышенное атмосферное давление {value} мм.р.с.");
@@ -115,5 +119,30 @@ static class WeatherEvaluator
         }
     }
 
+    private static void ProcessHumidity(StringBuilder message, int value)
+    {
+        StringBuilder tempInfo = new();
+        const int bound1 = 40;
+        const int bound2 = 80;
+        const int bound3 = 90;
+
+        if (value <= bound1)
+        {
+            tempInfo.Append($"Низкая влажность воздуха {value}%");
+        }
+        else if (value >= bound2 && value < bound3)
+        {
+            tempInfo.Append($"Высокая влажность воздуха {value}%");
+        }
+        else if (value >= bound3)
+        {
+            tempInfo.Append($"Очень высокая влажность воздуха {value}%");
+        }
+
+        if (tempInfo.Length > 0)
+        {
+            message.AppendLine(tempInfo.ToString());
+        }
+    }
 
 }
