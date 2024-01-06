@@ -5,6 +5,7 @@ namespace NetCatHook.Scraper.Infrastructure.HtmlProcessing;
 
 public class ChromeHtmlDownloader : IHtmlSource
 {
+    public int SlowMo { get; set; } = 10;
 
     public async Task<string> GetHtmlDataAsync(string url)
     {
@@ -14,13 +15,18 @@ public class ChromeHtmlDownloader : IHtmlSource
         var options = new LaunchOptions()
         {
             ExecutablePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe",
-            Headless = false,
-            SlowMo = 10,
+            Headless = true, // browser invisible mode
+            SlowMo = SlowMo,
             Timeout = 60000
         };
         await using var browser = await Puppeteer.LaunchAsync(options);
         await using var page = await browser.NewPageAsync();
-        await page.GoToAsync(url);
+
+        await page.GoToAsync(url, new NavigationOptions
+        {
+            WaitUntil = new[] { WaitUntilNavigation.Load },
+            Timeout = 0
+        });
         var content = await page.GetContentAsync();
 
         return content ?? string.Empty;

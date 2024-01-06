@@ -2,11 +2,11 @@
 
 class SchedulerHostedService : BackgroundService
 {
-    private readonly TimeoutScheduler scheduler;
+    private readonly RandomTimeoutScheduler scheduler;
     private readonly IConfiguration configuration;
     private readonly ILogger<SchedulerHostedService> logger;
 
-    public SchedulerHostedService(TimeoutScheduler scheduler, IConfiguration configuration,
+    public SchedulerHostedService(RandomTimeoutScheduler scheduler, IConfiguration configuration,
         ILogger<SchedulerHostedService> logger)
     {
         this.scheduler = scheduler;
@@ -22,8 +22,8 @@ class SchedulerHostedService : BackgroundService
         }
 
         var timeout = configuration.GetParsingSchedulerTimeoutInMinutes();
-        scheduler.Start(TimeSpan.FromMinutes(timeout));
-        logger.LogInformation($"Parsing scheduler starter with timeout {timeout} minutes");
+        scheduler.Start();
+        //logger.LogInformation($"Parsing scheduler starter with timeout {timeout} minutes");
 
         return Task.CompletedTask;
     }
