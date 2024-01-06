@@ -3,7 +3,7 @@ using PuppeteerSharp;
 
 namespace NetCatHook.Scraper.Infrastructure.HtmlProcessing;
 
-public class ChromeHtmlDownloader : IHtmlSource
+class BrowserHtmlDownloader : IHtmlSource
 {
     public int SlowMo { get; set; } = 10;
 
