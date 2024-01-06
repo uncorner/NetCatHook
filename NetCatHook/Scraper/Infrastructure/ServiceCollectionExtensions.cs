@@ -19,14 +19,21 @@ static class ServiceCollectionExtensions
         services.AddHttpClient<TgBotHostedService>();
         services.AddSingleton<WeatherNotifyer>();
 
-        services.AddTransient<IHtmlSource, ChromeHtmlDownloader>();
+        //services.AddTransient<IHtmlSource, ChromeHtmlDownloader>();
+
+        services.AddTransient<IHtmlSource, FakeHtmlDownloader>(CreateFakeHtmlDownloader);
         services.AddTransient<IWeatherHtmlParser, WeatherHtmlParser>();
-        //services.AddTransient<TimeoutScheduler>();
         services.AddTransient<RandomTimeoutScheduler>();
 
-        services.AddHostedService<TgBotHostedService>();
+        //services.AddHostedService<TgBotHostedService>();
+
         services.AddHostedService<SchedulerHostedService>();
     }
 
+    private static FakeHtmlDownloader CreateFakeHtmlDownloader(IServiceProvider service)
+    {
+        var logger = service.GetRequiredService<ILogger<FakeHtmlDownloader>>();
+        return new FakeHtmlDownloader(logger, "");
+    }
 
 }
