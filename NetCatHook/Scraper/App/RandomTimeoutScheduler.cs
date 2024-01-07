@@ -10,10 +10,10 @@ class RandomTimeoutScheduler : IDisposable, IAsyncDisposable
     private readonly IWeatherHtmlParser parser;
     private readonly WeatherNotifyer notifyer;
     private readonly IConfiguration config;
-    private Timer timer;
+    private readonly Timer timer;
     private readonly int timeoutBase;
     private bool isDisposed = false;
-    private readonly object syncObj = new object();
+    private readonly object syncObj = new();
 
     public RandomTimeoutScheduler(ILogger<TimeoutScheduler> logger,
         IHtmlSource htmlSource, IWeatherHtmlParser parser,
@@ -31,16 +31,8 @@ class RandomTimeoutScheduler : IDisposable, IAsyncDisposable
 
     public void Start()
     {
-        //var randTimeout = GetRandomTimeoutInMinutes();
-        //logger.LogInformation($"Parsing scheduler starter with timeout {randTimeout} minutes");
-        //timer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan);
         StartTimerNoRepeat(TimeSpan.Zero);
     }
-
-    //private void StopTimer()
-    //{
-    //    timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-    //}
 
     private void StartTimerNoRepeat(TimeSpan dueTime)
     {
@@ -49,21 +41,6 @@ class RandomTimeoutScheduler : IDisposable, IAsyncDisposable
 
     private async void Process(object? state)
     {
-        //if (isDisposed)
-        //{
-        //    return;
-        //}
-        //lock (syncObj)
-        //{
-        //    if (isDisposed)
-        //    {
-        //        return;
-        //    }
-
-        //    StopTimer();
-        //    //await timer.DisposeAsync();
-        //}
-
         logger.LogInformation("Start html parsing");
         try
         {
@@ -103,29 +80,27 @@ class RandomTimeoutScheduler : IDisposable, IAsyncDisposable
         }
         catch (Exception ex)
         {
-            logger.LogError($"Parsing failed. Error: {ex.Message}, Inner: {ex.InnerException?.Message ?? "none"}");
-            //logger.LogError(ex.ToString());
+            logger.LogError($"Html parsing failed. Error: {ex.Message}, Inner: {ex.InnerException?.Message ?? "none"}");
         }
         finally
         {
-            if (!isDisposed)
+            SafelyRestartTimer();
+        }
+    }
+
+    private void SafelyRestartTimer()
+    {
+        if (!isDisposed)
+        {
+            lock (syncObj)
             {
-                lock (syncObj)
+                if (!isDisposed)
                 {
-                    if (!isDisposed)
-                    {
-                        var randTimeout = GetRandomTimeoutInMinutes();
-                        logger.LogInformation($"Parsing scheduler started with timeout {randTimeout} minutes");
-                        //timer.Change(TimeSpan.FromMinutes(randTimeout), Timeout.InfiniteTimeSpan);
-                        StartTimerNoRepeat(TimeSpan.FromMinutes(randTimeout));
-                    }
+                    var randTimeout = GetRandomTimeoutInMinutes();
+                    logger.LogInformation($"Parsing scheduler started with timeout {randTimeout} minutes");
+                    StartTimerNoRepeat(TimeSpan.FromMinutes(randTimeout));
                 }
             }
-
-            //timer = new Timer(new TimerCallback(Process));
-            //var randTimeout = GetRandomTimeoutInMinutes();
-            //logger.LogInformation($"Parsing scheduler starter with timeout {randTimeout} minutes");
-            //timer.Change(TimeSpan.FromMinutes(randTimeout), Timeout.InfiniteTimeSpan);
         }
     }
 
@@ -156,7 +131,7 @@ class RandomTimeoutScheduler : IDisposable, IAsyncDisposable
         {
             timer.Dispose();
             isDisposed = true;
-            logger.LogInformation("Timeout scheduler disposed");
+            logger.LogInformation("Random timeout scheduler disposed");
         }
     }
 
