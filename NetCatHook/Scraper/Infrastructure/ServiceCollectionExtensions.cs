@@ -3,7 +3,6 @@ using NetCatHook.Scraper.App.HostedServices;
 using NetCatHook.Scraper.App.HtmlProcessing;
 using NetCatHook.Scraper.App.Parsing;
 using NetCatHook.Scraper.App.Repository;
-using NetCatHook.Scraper.Infrastructure.HtmlProcessing;
 using NetCatHook.Scraper.Infrastructure.Repository;
 
 namespace NetCatHook.Scraper.Infrastructure;
@@ -23,11 +22,11 @@ static class ServiceCollectionExtensions
 
         services.AddTransient<IHtmlSource, FakeHtmlDownloader>(CreateFakeHtmlDownloader);
         services.AddTransient<IWeatherHtmlParser, WeatherHtmlParser>();
-        services.AddTransient<RandomTimeoutScheduler>();
+        services.AddTransient<IFetchingScheduler, RandomTimeoutFetchingScheduler>();
 
         //services.AddHostedService<TgBotHostedService>();
 
-        services.AddHostedService<SchedulerHostedService>();
+        services.AddHostedService<FetchingSchedulerHostedService>();
     }
 
     private static FakeHtmlDownloader CreateFakeHtmlDownloader(IServiceProvider service)

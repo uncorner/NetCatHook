@@ -3,40 +3,37 @@ using NetCatHook.Scraper.Domain;
 
 namespace NetCatHook.Scraper.App;
 
-class RandomTimeoutScheduler : IDisposable, IAsyncDisposable
+class TimeoutFetchingScheduler : IFetchingScheduler
 {
-    private readonly ILogger<TimeoutScheduler> logger;
+    private readonly ILogger<TimeoutFetchingScheduler> logger;
     private readonly IHtmlSource htmlSource;
     private readonly IWeatherHtmlParser parser;
     private readonly WeatherNotifyer notifyer;
     private readonly IConfiguration config;
     private readonly Timer timer;
-    private readonly int timeoutBase;
     private bool isDisposed = false;
-    private readonly object syncObj = new();
 
-    public RandomTimeoutScheduler(ILogger<TimeoutScheduler> logger,
+    public TimeoutFetchingScheduler(ILogger<TimeoutFetchingScheduler> logger,
         IHtmlSource htmlSource, IWeatherHtmlParser parser,
         WeatherNotifyer notifyer, IConfiguration config)
     {
         timer = new Timer(new TimerCallback(Process));
-
         this.logger = logger;
         this.htmlSource = htmlSource;
         this.parser = parser;
         this.notifyer = notifyer;
         this.config = config;
-        timeoutBase = config.GetParsingSchedulerTimeoutInMinutes();
     }
 
     public void Start()
     {
-        StartTimerNoRepeat(TimeSpan.Zero);
-    }
+        if (isDisposed)
+        {
+            return;
+        }
 
-    private void StartTimerNoRepeat(TimeSpan dueTime)
-    {
-        timer.Change(dueTime, Timeout.InfiniteTimeSpan);
+        var timeout = config.GetParsingSchedulerTimeoutInMinutes();
+        timer.Change(TimeSpan.FromSeconds(5), TimeSpan.FromMinutes(timeout));
     }
 
     private async void Process(object? state)
@@ -46,10 +43,6 @@ class RandomTimeoutScheduler : IDisposable, IAsyncDisposable
         {
             var parsingUrl = config.GetWeatherParsingUrl();
             logger.LogInformation($"Parsing for URL: {parsingUrl}");
-
-            htmlSource.SlowMo = GetRandomSlowMoInSec();
-            logger.LogInformation($"Browser SlowMo timout is {htmlSource.SlowMo} sec");
-
             var html = await htmlSource.GetHtmlDataAsync(parsingUrl);
             if (html is null)
             {
@@ -80,43 +73,8 @@ class RandomTimeoutScheduler : IDisposable, IAsyncDisposable
         }
         catch (Exception ex)
         {
-            logger.LogError($"Html parsing failed. Error: {ex.Message}, Inner: {ex.InnerException?.Message ?? "none"}");
+            logger.LogError($"Parsing failed. Error: {ex.Message}, Inner: {ex.InnerException?.Message ?? "none"}");
         }
-        finally
-        {
-            SafelyRestartTimer();
-        }
-    }
-
-    private void SafelyRestartTimer()
-    {
-        if (!isDisposed)
-        {
-            lock (syncObj)
-            {
-                if (!isDisposed)
-                {
-                    var randTimeout = GetRandomTimeoutInMinutes();
-                    logger.LogInformation($"Parsing scheduler started with timeout {randTimeout} minutes");
-                    StartTimerNoRepeat(TimeSpan.FromMinutes(randTimeout));
-                }
-            }
-        }
-    }
-
-    private int GetRandomTimeoutInMinutes()
-    {
-        var range = timeoutBase / 4;
-        var random = new Random();
-        var randValueX2 = random.Next(range * 2);
-        var signedRandValue = range - randValueX2;
-        return timeoutBase + signedRandValue;
-    }
-
-    private static int GetRandomSlowMoInSec()
-    {
-        var random = new Random();
-        return random.Next(30, 100);
     }
 
     #region Dispose, IAsyncDisposable
@@ -127,12 +85,9 @@ class RandomTimeoutScheduler : IDisposable, IAsyncDisposable
             return;
         }
 
-        lock (syncObj)
-        {
-            timer.Dispose();
-            isDisposed = true;
-            logger.LogInformation("Random timeout scheduler disposed");
-        }
+        timer.Dispose();
+        isDisposed = true;
+        logger.LogInformation("Fetching scheduler disposed");
     }
 
     public async ValueTask DisposeAsync()
