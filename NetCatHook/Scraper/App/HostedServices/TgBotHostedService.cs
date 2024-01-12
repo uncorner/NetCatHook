@@ -78,7 +78,7 @@ class TgBotHostedService : IHostedService
 
     private async void HandleWeatherNotifyer(string message)
     {
-        if (botClient is null || cachedChatIds.Count == 0)
+        if (botClient is null || cachedChatIds.IsEmpty)
         {
             return;
         }

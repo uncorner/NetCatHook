@@ -1,4 +1,6 @@
-﻿namespace NetCatHook.Scraper.App.HostedServices;
+﻿using NetCatHook.Scraper.App.FetchingSchedulers;
+
+namespace NetCatHook.Scraper.App.HostedServices;
 
 class FetchingSchedulerHostedService : BackgroundService
 {

@@ -1,7 +1,7 @@
 ﻿using NetCatHook.Scraper.App.HtmlProcessing;
 using NetCatHook.Scraper.Domain;
 
-namespace NetCatHook.Scraper.App;
+namespace NetCatHook.Scraper.App.FetchingSchedulers;
 
 class RandomTimeoutFetchingScheduler : IFetchingScheduler
 {
@@ -95,17 +95,21 @@ class RandomTimeoutFetchingScheduler : IFetchingScheduler
 
     private void SafelyRestartTimer()
     {
-        if (!isDisposed)
+        if (isDisposed)
         {
-            lock (syncObj)
+            return;
+        }
+
+        lock (syncObj)
+        {
+            if (isDisposed)
             {
-                if (!isDisposed)
-                {
-                    var randTimeout = GetRandomTimeoutInMinutes();
-                    logger.LogInformation($"Parsing scheduler started with timeout {randTimeout} minutes");
-                    StartTimerNoRepeat(TimeSpan.FromMinutes(randTimeout));
-                }
+                return;
             }
+
+            var randTimeout = GetRandomTimeoutInMinutes();
+            logger.LogInformation($"Parsing scheduler started with timeout {randTimeout} minutes");
+            StartTimerNoRepeat(TimeSpan.FromMinutes(randTimeout));
         }
     }
 
