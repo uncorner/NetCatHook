@@ -12,16 +12,15 @@ namespace NetCatHook.Scraper.Infrastructure;
 static class ServiceCollectionExtensions
 {
     public static void AddCustomServices(this IServiceCollection services,
-        ConfigurationManager configuration)
+        ConfigurationManager config)
     {
         services.AddTransient<IUnitOfWorkFactory, UnitOfWorkFactory>();
         services.AddDbContextFactory<ApplicationDbContext>();
 
         services.AddHttpClient<TgBotHostedService>();
         services.AddSingleton<WeatherNotifyer>();
+        AddHtmlDownloader(services, config);
 
-        //services.AddTransient<IHtmlSource, FakeHtmlDownloader>(FakeHtmlDownloader.Create);
-        services.AddTransient<IHtmlSource, BrowserHtmlDownloader>();
         services.AddTransient<IWeatherHtmlParser, WeatherHtmlParser>();
         services.AddTransient<IFetchingScheduler, RandomTimeoutFetchingScheduler>();
 
@@ -29,4 +28,16 @@ static class ServiceCollectionExtensions
         services.AddHostedService<FetchingSchedulerHostedService>();
     }
 
+    private static void AddHtmlDownloader(IServiceCollection services, ConfigurationManager config)
+    {
+        if (config.GetFakeHtmlDownloaderEnabled())
+        {
+            services.AddTransient<IHtmlSource,
+                FakeHtmlDownloader>((service) => FakeHtmlDownloader.Create(service, string.Empty));
+        }
+        else
+        {
+            services.AddTransient<IHtmlSource, BrowserHtmlDownloader>();
+        }
+    }
 }
