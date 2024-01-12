@@ -33,11 +33,19 @@ static class ServiceCollectionExtensions
         if (config.GetFakeHtmlDownloaderEnabled())
         {
             services.AddTransient<IHtmlSource,
-                FakeHtmlDownloader>((service) => FakeHtmlDownloader.Create(service, string.Empty));
+                FakeHtmlDownloader>((service) => CreateFakeHtmlDownloader(service, string.Empty));
         }
         else
         {
             services.AddTransient<IHtmlSource, BrowserHtmlDownloader>();
         }
     }
+
+    private static FakeHtmlDownloader CreateFakeHtmlDownloader(IServiceProvider services, string html)
+    {
+        var logger = services.GetRequiredService<ILogger<FakeHtmlDownloader>>();
+        logger.LogInformation($"Using {nameof(FakeHtmlDownloader)}");
+        return new FakeHtmlDownloader(logger, html);
+    }
+
 }

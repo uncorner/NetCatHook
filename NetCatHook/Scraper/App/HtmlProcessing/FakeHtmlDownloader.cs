@@ -19,10 +19,4 @@ class FakeHtmlDownloader : IHtmlSource
         return Task.FromResult(resultHtml);
     }
 
-    public static FakeHtmlDownloader Create(IServiceProvider service, string html)
-    {
-        var logger = service.GetRequiredService<ILogger<FakeHtmlDownloader>>();
-        return new FakeHtmlDownloader(logger, html);
-    }
-
 }
