@@ -1,38 +1,37 @@
 ﻿using NetCatHook.Scraper.App.Entities;
 using NetCatHook.Scraper.App.Repository;
 using System.Collections.Concurrent;
-using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
-using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types;
+using Telegram.Bot;
+using NetCatHook.Scraper.App.NotificationProviders;
 
-namespace NetCatHook.Scraper.App.HostedServices;
+namespace NetCatHook.Scraper.App.Telegram;
 
-class TgBotHostedService : IHostedService
+class TgBotNotificationProvider : INotificationProvider
 {
-    private readonly ILogger<TgBotHostedService> logger;
-    private readonly WeatherNotifyer weatherNotifyer;
+    private readonly ILogger<TgBotNotificationProvider> logger;
     private readonly HttpClient httpClient;
     private readonly IConfiguration configuration;
     private readonly IUnitOfWorkFactory unitOfWorkFactory;
     private TelegramBotClient? botClient;
-    private CancellationTokenSource botCts = new();
-
+    private readonly CancellationTokenSource botCts = new();
+    private bool disposed = false;
     private ConcurrentDictionary<long, bool> cachedChatIds = new();
 
-    public TgBotHostedService(ILogger<TgBotHostedService> logger,
-        WeatherNotifyer weatherNotifyer, HttpClient httpClient,
+    public TgBotNotificationProvider(ILogger<TgBotNotificationProvider> logger,
+        HttpClient httpClient,
         IConfiguration configuration, IUnitOfWorkFactory unitOfWorkFactory)
     {
         this.logger = logger;
-        this.weatherNotifyer = weatherNotifyer;
         this.httpClient = httpClient;
         this.configuration = configuration;
         this.unitOfWorkFactory = unitOfWorkFactory;
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public async Task Initialize(CancellationToken cancellationToken)
     {
         logger.LogInformation("Starting Tg Bot");
         var secureToken = configuration.GetTgBotSecureToken();
@@ -57,10 +56,9 @@ class TgBotHostedService : IHostedService
         );
 
         var botUser = await botClient.GetMeAsync(cancellationToken);
-        weatherNotifyer.Event += HandleWeatherNotifyer;
 
         cachedChatIds = await LoadBotChatIds();
-        logger.LogInformation($"Loaded Tg Bot chats: {cachedChatIds.Count()}");
+        logger.LogInformation($"Loaded Tg Bot chats: {cachedChatIds.Count}");
 
         logger.LogInformation($"Tg Bot @{botUser.Username} started");
     }
@@ -76,9 +74,9 @@ class TgBotHostedService : IHostedService
         return new ConcurrentDictionary<long, bool>(chatIdPairs);
     }
 
-    private async void HandleWeatherNotifyer(string message)
+    public async Task SendMessage(string message)
     {
-        if (botClient is null || cachedChatIds.IsEmpty)
+        if (disposed || botClient is null || cachedChatIds.IsEmpty)
         {
             return;
         }
@@ -145,14 +143,20 @@ class TgBotHostedService : IHostedService
         return Task.CompletedTask;
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    #region IDisposable
+    public void Dispose()
     {
-        weatherNotifyer.Event -= HandleWeatherNotifyer;
+        if (disposed)
+        {
+            return;
+        }
+
         botCts.Cancel();
         botCts.Dispose();
-
-        logger.LogInformation("Tg Bot stopped");
-        return Task.CompletedTask;
+        botClient = null;
+        disposed = true;
+        logger.LogInformation("Tg Bot disposed");
     }
+    #endregion
 
 }

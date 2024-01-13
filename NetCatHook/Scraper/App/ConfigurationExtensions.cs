@@ -27,4 +27,9 @@ static class ConfigurationExtensions
         return config.GetValue<bool>("FakeHtmlDownloaderEnabled");
     }
 
+    public static bool GetLoggerNotificationsEnabled(this IConfiguration config)
+    {
+        return config.GetValue<bool>("LoggerNotificationsEnabled");
+    }
+
 }
