@@ -11,7 +11,7 @@ class LoggerNotificationProvider : INotificationProvider
 
     public Task Initialize(CancellationToken cancellationToken)
     {
-        logger.LogInformation("Starting logger notifications");
+        logger.LogInformation("Init logger notifications");
         return Task.CompletedTask;
     }
 

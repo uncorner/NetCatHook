@@ -53,7 +53,7 @@ class RandomTimeoutFetchingScheduler : IFetchingScheduler
             logger.LogInformation($"Parsing for URL: {parsingUrl}");
 
             htmlSource.SlowMo = GetRandomSlowMoInSec();
-            logger.LogInformation($"Browser SlowMo timout is {htmlSource.SlowMo} sec");
+            logger.LogInformation($"Set SlowMo timout {htmlSource.SlowMo} sec");
 
             var html = await htmlSource.GetHtmlDataAsync(parsingUrl);
             if (html is null)
@@ -70,7 +70,7 @@ class RandomTimeoutFetchingScheduler : IFetchingScheduler
                 if (result.Processed && result.TextMessage is not null)
                 {
                     notifyer.SendMessage(result.TextMessage);
-                    logger.LogInformation("Weather message was sent to Tg chats");
+                    logger.LogInformation("Weather notification message was sent");
                 }
                 else
                 {

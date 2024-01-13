@@ -33,7 +33,7 @@ class TgBotNotificationProvider : INotificationProvider
 
     public async Task Initialize(CancellationToken cancellationToken)
     {
-        logger.LogInformation("Starting Tg Bot");
+        logger.LogInformation("Init Tg Bot");
         var secureToken = configuration.GetTgBotSecureToken();
         if (string.IsNullOrWhiteSpace(secureToken))
         {
