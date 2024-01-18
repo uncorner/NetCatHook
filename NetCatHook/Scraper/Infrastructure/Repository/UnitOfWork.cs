@@ -16,6 +16,9 @@ sealed class UnitOfWork : IUnitOfWork
     public ITgBotChatRepository CreateTgBotChatRepository() =>
         new TgBotChatRepository(dbContext);
 
+    public IWeatherReportRepository CreateWeatherReportRepository() =>
+        new WeatherReportRepository(dbContext);
+
     #endregion
 
     public int SaveChanges()

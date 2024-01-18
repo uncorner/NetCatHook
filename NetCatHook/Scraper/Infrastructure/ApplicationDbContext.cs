@@ -9,6 +9,7 @@ public class ApplicationDbContext : DbContext
     private readonly IConfiguration configuration;
 
     internal DbSet<TgBotChat> TgBotChats { get; set; } = null!;
+    internal DbSet<WeatherReport> WeatherReports { get; set; } = null!;
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options,
         IConfiguration configuration)

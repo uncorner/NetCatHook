@@ -1,4 +1,6 @@
-﻿using NetCatHook.Scraper.App.HtmlProcessing;
+﻿using NetCatHook.Scraper.App.Entities;
+using NetCatHook.Scraper.App.HtmlProcessing;
+using NetCatHook.Scraper.App.Repository;
 using NetCatHook.Scraper.Domain;
 
 namespace NetCatHook.Scraper.App.FetchingSchedulers;
@@ -10,14 +12,17 @@ class RandomTimeoutFetchingScheduler : IFetchingScheduler
     private readonly IWeatherHtmlParser parser;
     private readonly WeatherNotifyer notifyer;
     private readonly IConfiguration config;
+    private readonly IUnitOfWorkFactory unitOfWorkFactory;
     private readonly Timer timer;
     private readonly int timeoutBase;
     private bool isDisposed = false;
     private readonly object syncObj = new();
 
-    public RandomTimeoutFetchingScheduler(ILogger<RandomTimeoutFetchingScheduler> logger,
+    public RandomTimeoutFetchingScheduler(
+        ILogger<RandomTimeoutFetchingScheduler> logger,
         IHtmlSource htmlSource, IWeatherHtmlParser parser,
-        WeatherNotifyer notifyer, IConfiguration config)
+        WeatherNotifyer notifyer, IConfiguration config,
+        IUnitOfWorkFactory unitOfWorkFactory)
     {
         timer = new Timer(new TimerCallback(Process));
 
@@ -26,6 +31,7 @@ class RandomTimeoutFetchingScheduler : IFetchingScheduler
         this.parser = parser;
         this.notifyer = notifyer;
         this.config = config;
+        this.unitOfWorkFactory = unitOfWorkFactory;
         timeoutBase = config.GetParsingSchedulerTimeoutInMinutes();
     }
 
@@ -69,7 +75,14 @@ class RandomTimeoutFetchingScheduler : IFetchingScheduler
 
                 if (result.Processed && result.TextMessage is not null)
                 {
-                    notifyer.SendMessage(result.TextMessage);
+                    var messageTask = Task.Run(() =>
+                        notifyer.SendMessage(result.TextMessage));
+                    var saveTask = SaveWeatherReport(weatherData);
+                    await Task.WhenAll(messageTask, saveTask);
+
+                    //notifyer.SendMessage(result.TextMessage);
+                    //await SaveWeatherReport(weatherData);
+
                     logger.LogInformation("Weather notification message was sent");
                 }
                 else
@@ -91,6 +104,18 @@ class RandomTimeoutFetchingScheduler : IFetchingScheduler
         {
             SafelyRestartTimer();
         }
+    }
+
+    private async Task SaveWeatherReport(WeatherData weatherData)
+    {
+        await using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
+        var reportRepository = unitOfWork.CreateWeatherReportRepository();
+        var report = new WeatherReport();
+        report.SetWeatherData(weatherData);
+        report.CreatedAtLocal = DateTime.Now;
+        await reportRepository.Add(report);
+
+        await unitOfWork.SaveChangesAsync();
     }
 
     private void SafelyRestartTimer()

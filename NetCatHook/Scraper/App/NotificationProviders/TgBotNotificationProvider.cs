@@ -67,7 +67,7 @@ class TgBotNotificationProvider : INotificationProvider
     {
         await using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
         var repository = unitOfWork.CreateTgBotChatRepository();
-        var chats = await repository.GetAllAsync();
+        var chats = await repository.GetAll();
         var chatIdPairs = chats.Select(chat =>
             new KeyValuePair<long, bool>(chat.ChatId, default)).ToArray();
 
@@ -104,10 +104,27 @@ class TgBotNotificationProvider : INotificationProvider
             return;
 
         var chatId = message.Chat.Id;
+        //await botClient.SendTextMessageAsync(
+        //    chatId: chatId,
+        //    text: "You said:\n" + messageText,
+        //    cancellationToken: cancellationToken);
+
+        //>>>>>>>>>>>
+        // логика протухания последней сводки погоы через 4 часа
+        await using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
+        var reportRepository = unitOfWork.CreateWeatherReportRepository();
+        var report = await reportRepository.GetLast();
+
+        var reportMessage = "Нет данных о погоде";
+        if (report is not null)
+        {
+            reportMessage = $"Weather data at {report.CreatedAtLocal}: TemperatureAir {report.TemperatureAir}";
+        }
+ 
         await botClient.SendTextMessageAsync(
-            chatId: chatId,
-            text: "You said:\n" + messageText,
-            cancellationToken: cancellationToken);
+                chatId: chatId,
+                text: reportMessage,
+                cancellationToken: cancellationToken);
 
         var isNewChat = cachedChatIds.TryAdd(chatId, default);
         if (isNewChat)
@@ -125,7 +142,7 @@ class TgBotNotificationProvider : INotificationProvider
         if (savedChat is null)
         {
             var tgBotChat = new TgBotChat() { ChatId = chatId };
-            await repository.AddAsync(tgBotChat);
+            await repository.Add(tgBotChat);
             await unitOfWork.SaveChangesAsync();
         }
     }

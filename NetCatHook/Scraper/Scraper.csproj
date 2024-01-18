@@ -20,10 +20,4 @@
     <PackageReference Include="Telegram.Bot" Version="19.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="App\Entities\" />
-    <Folder Include="App\Repository\" />
-    <Folder Include="Infrastructure\Repository\" />
-  </ItemGroup>
-
 </Project>

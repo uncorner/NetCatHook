@@ -13,12 +13,12 @@ class TgBotChatRepository : ITgBotChatRepository
         this.dbContext = dbContext;
     }
 
-    public async Task AddAsync(TgBotChat product)
+    public async Task Add(TgBotChat product)
     {
         await dbContext.TgBotChats.AddAsync(product);
     }
 
-    public async Task<IEnumerable<TgBotChat>> GetAllAsync() =>
+    public async Task<IEnumerable<TgBotChat>> GetAll() =>
         await dbContext.TgBotChats.OrderBy(i => i.Id).ToArrayAsync();
 
     public async Task<TgBotChat?> GetByChatId(long chatId)
