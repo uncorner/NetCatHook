@@ -45,5 +45,11 @@ class WeatherReport
         WindSpeed = data.WindSpeed;
         WindGust = data.WindGust;
     }
- 
+
+    internal static WeatherReport CreateExpired()
+    {
+        return new WeatherReport { CreatedAt = DateTime.MinValue };
+    }
+
+
 }

@@ -71,24 +71,26 @@ class RandomTimeoutFetchingScheduler : IFetchingScheduler
             if (weatherData.Processed)
             {
                 logger.LogInformation("Parsing html succeeded");
-                var result = WeatherEvaluator.Evaluate(weatherData);
 
-                if (result.Processed && result.TextMessage is not null)
+                var report = new WeatherReport();
+                report.SetWeatherData(weatherData);
+                report.CreatedAtLocal = DateTime.Now;
+                 
+                var evalResult = WeatherEvaluator.Evaluate(weatherData);
+                string? sendingMessage = null;
+                if (evalResult.Processed && evalResult.TextMessage is not null)
                 {
-                    var messageTask = Task.Run(() =>
-                        notifyer.SendMessage(result.TextMessage));
-                    var saveTask = SaveWeatherReport(weatherData);
-                    await Task.WhenAll(messageTask, saveTask);
-
-                    //notifyer.SendMessage(result.TextMessage);
-                    //await SaveWeatherReport(weatherData);
-
-                    logger.LogInformation("Weather notification message was sent");
+                    sendingMessage = evalResult.TextMessage;
+                    logger.LogInformation("Weather notification message is sending");
                 }
                 else
                 {
-                    logger.LogError("Weather data is not processed");
+                    logger.LogError("Weather data is not evaluated");
                 }
+
+                var savingTask = SaveWeatherReport(report);
+                var sendingTask = Task.Run(() => notifyer.SendData(sendingMessage, report));
+                await Task.WhenAll(savingTask, sendingTask);
             }
             else
             {
@@ -106,13 +108,13 @@ class RandomTimeoutFetchingScheduler : IFetchingScheduler
         }
     }
 
-    private async Task SaveWeatherReport(WeatherData weatherData)
+    private async Task SaveWeatherReport(WeatherReport report)
     {
         await using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
         var reportRepository = unitOfWork.CreateWeatherReportRepository();
-        var report = new WeatherReport();
-        report.SetWeatherData(weatherData);
-        report.CreatedAtLocal = DateTime.Now;
+        //var report = new WeatherReport();
+        //report.SetWeatherData(weatherData);
+        //report.CreatedAtLocal = DateTime.Now;
         await reportRepository.Add(report);
 
         await unitOfWork.SaveChangesAsync();

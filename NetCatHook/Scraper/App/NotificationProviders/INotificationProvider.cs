@@ -1,8 +1,10 @@
-﻿namespace NetCatHook.Scraper.App.NotificationProviders;
+﻿using NetCatHook.Scraper.App.Entities;
+
+namespace NetCatHook.Scraper.App.NotificationProviders;
 
 interface INotificationProvider : IDisposable
 {
     public Task Initialize(CancellationToken cancellationToken);
 
-    public Task SendMessage(string message);
+    public Task SendData(string? message, WeatherReport weatherReport);
 }

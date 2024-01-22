@@ -1,4 +1,6 @@
-﻿namespace NetCatHook.Scraper.App.NotificationProviders;
+﻿using NetCatHook.Scraper.App.Entities;
+
+namespace NetCatHook.Scraper.App.NotificationProviders;
 
 class LoggerNotificationProvider : INotificationProvider
 {
@@ -15,7 +17,7 @@ class LoggerNotificationProvider : INotificationProvider
         return Task.CompletedTask;
     }
 
-    public Task SendMessage(string message)
+    public Task SendData(string? message, WeatherReport weatherReport)
     {
         logger.LogInformation($"Notification message: {message}");
         return Task.CompletedTask;
@@ -25,4 +27,5 @@ class LoggerNotificationProvider : INotificationProvider
     {
         //do nothing
     }
+    
 }

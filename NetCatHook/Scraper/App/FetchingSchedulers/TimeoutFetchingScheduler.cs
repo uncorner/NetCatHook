@@ -36,45 +36,45 @@ class TimeoutFetchingScheduler : IFetchingScheduler
         timer.Change(TimeSpan.FromSeconds(5), TimeSpan.FromMinutes(timeout));
     }
 
-    private async void Process(object? state)
+    private void Process(object? state)
     {
-        logger.LogInformation("Start html parsing");
-        try
-        {
-            var parsingUrl = config.GetWeatherParsingUrl();
-            logger.LogInformation($"Parsing for URL: {parsingUrl}");
-            var html = await htmlSource.GetHtmlDataAsync(parsingUrl);
-            if (html is null)
-            {
-                throw new NullReferenceException("html is null");
-            }
+        //logger.LogInformation("Start html parsing");
+        //try
+        //{
+        //    var parsingUrl = config.GetWeatherParsingUrl();
+        //    logger.LogInformation($"Parsing for URL: {parsingUrl}");
+        //    var html = await htmlSource.GetHtmlDataAsync(parsingUrl);
+        //    if (html is null)
+        //    {
+        //        throw new NullReferenceException("html is null");
+        //    }
 
-            var weatherData = await parser.TryParseAsync(html);
-            if (weatherData.Processed)
-            {
-                logger.LogInformation("Parsing html succeeded");
-                var result = WeatherEvaluator.Evaluate(weatherData);
+        //    var weatherData = await parser.TryParseAsync(html);
+        //    if (weatherData.Processed)
+        //    {
+        //        logger.LogInformation("Parsing html succeeded");
+        //        var result = WeatherEvaluator.Evaluate(weatherData);
 
-                if (result.Processed && result.TextMessage is not null)
-                {
-                    notifyer.SendMessage(result.TextMessage);
-                    logger.LogInformation("Weather message was sent to Tg chats");
-                }
-                else
-                {
-                    logger.LogError("Weather data is not processed");
-                }
-            }
-            else
-            {
-                logger.LogError("Parsing failed");
-                return;
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogError($"Parsing failed. Error: {ex.Message}, Inner: {ex.InnerException?.Message ?? "none"}");
-        }
+        //        if (result.Processed && result.TextMessage is not null)
+        //        {
+        //            notifyer.SendMessage(result.TextMessage);
+        //            logger.LogInformation("Weather message was sent to Tg chats");
+        //        }
+        //        else
+        //        {
+        //            logger.LogError("Weather data is not processed");
+        //        }
+        //    }
+        //    else
+        //    {
+        //        logger.LogError("Parsing failed");
+        //        return;
+        //    }
+        //}
+        //catch (Exception ex)
+        //{
+        //    logger.LogError($"Parsing failed. Error: {ex.Message}, Inner: {ex.InnerException?.Message ?? "none"}");
+        //}
     }
 
     #region Dispose, IAsyncDisposable

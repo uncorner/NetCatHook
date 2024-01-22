@@ -20,6 +20,8 @@ class TgBotNotificationProvider : INotificationProvider
     private readonly CancellationTokenSource botCts = new();
     private bool disposed = false;
     private ConcurrentDictionary<long, bool> cachedChatIds = new();
+    private WeatherReport? cachedLastWeatherReport;
+    private object reportSyncObject = new();
 
     public TgBotNotificationProvider(ILogger<TgBotNotificationProvider> logger,
         HttpClient httpClient,
@@ -29,6 +31,30 @@ class TgBotNotificationProvider : INotificationProvider
         this.httpClient = httpClient;
         this.configuration = configuration;
         this.unitOfWorkFactory = unitOfWorkFactory;
+    }
+
+    private WeatherReport GetSafeLastWeatherReport()
+    {
+        if (cachedLastWeatherReport is null)
+        {
+            lock (reportSyncObject)
+            {
+                if (cachedLastWeatherReport is null)
+                {
+                    cachedLastWeatherReport = LoadLastWeatherReport();
+                    cachedLastWeatherReport ??= WeatherReport.CreateExpired();
+                }
+            }
+        }
+        
+        return cachedLastWeatherReport;
+    }
+
+    private WeatherReport? LoadLastWeatherReport()
+    {
+        using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
+        var reportRepository = unitOfWork.CreateWeatherReportRepository();
+        return reportRepository.GetLast().Result;
     }
 
     public async Task Initialize(CancellationToken cancellationToken)
@@ -74,9 +100,24 @@ class TgBotNotificationProvider : INotificationProvider
         return new ConcurrentDictionary<long, bool>(chatIdPairs);
     }
 
-    public async Task SendMessage(string message)
+    public async Task SendData(string? message, WeatherReport weatherReport)
     {
-        if (disposed || botClient is null || cachedChatIds.IsEmpty)
+        if (disposed)
+        {
+            return;
+        }
+
+        SetSafeCachedLastWeatherReport(weatherReport);
+
+        if (message is not null)
+        {
+            await SendMessageToAllChats(message);
+        }
+    }
+
+    private async Task SendMessageToAllChats(string message)
+    {
+        if (botClient is null || cachedChatIds.IsEmpty)
         {
             return;
         }
@@ -94,31 +135,36 @@ class TgBotNotificationProvider : INotificationProvider
         await Task.WhenAll(messageTasks);
     }
 
+    private void SetSafeCachedLastWeatherReport(WeatherReport report)
+    {
+        lock (reportSyncObject)
+        {
+            cachedLastWeatherReport = report;
+        }
+    }
+
     private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
     {
         // Only process Message updates: https://core.telegram.org/bots/api#message
         if (update.Message is not { } message)
+        {
             return;
+        }
         // Only process text messages
         if (message.Text is not { } messageText)
+        {
             return;
+        }
 
         var chatId = message.Chat.Id;
-        //await botClient.SendTextMessageAsync(
-        //    chatId: chatId,
-        //    text: "You said:\n" + messageText,
-        //    cancellationToken: cancellationToken);
-
-        //>>>>>>>>>>>
-        // логика протухания последней сводки погоы через 4 часа
-        await using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
-        var reportRepository = unitOfWork.CreateWeatherReportRepository();
-        var report = await reportRepository.GetLast();
+        var report = GetSafeLastWeatherReport();
+        var timeoutMinutes = configuration.GetParsingSchedulerTimeoutInMinutes();
+        var expiringTimeUtc = DateTime.UtcNow.AddMinutes(-timeoutMinutes*2);
 
         var reportMessage = "Нет данных о погоде";
-        if (report is not null)
+        if (report.CreatedAt >= expiringTimeUtc)
         {
-            reportMessage = $"Weather data at {report.CreatedAtLocal}: TemperatureAir {report.TemperatureAir}";
+            reportMessage = WeatherSummaryBuilder.Build(report);
         }
  
         await botClient.SendTextMessageAsync(

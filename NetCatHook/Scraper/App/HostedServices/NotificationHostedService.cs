@@ -1,4 +1,5 @@
-﻿using NetCatHook.Scraper.App.NotificationProviders;
+﻿using NetCatHook.Scraper.App.Entities;
+using NetCatHook.Scraper.App.NotificationProviders;
 
 namespace NetCatHook.Scraper.App.HostedServices;
 
@@ -28,11 +29,11 @@ class NotificationHostedService : IHostedService
         }
     }
 
-    private async void HandleWeatherNotifyer(string message)
+    private async void HandleWeatherNotifyer(string? message, WeatherReport weatherReport)
     {
         try
         {
-            await notificationProvider.SendMessage(message);
+            await notificationProvider.SendData(message, weatherReport);
         }
         catch(Exception ex)
         {
