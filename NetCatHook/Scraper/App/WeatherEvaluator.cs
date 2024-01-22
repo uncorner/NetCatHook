@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace NetCatHook.Scraper.Domain;
+namespace NetCatHook.Scraper.App;
 
 record class WeatherEvaluatorData(bool Processed, string? TextMessage);
 
@@ -72,11 +72,11 @@ static class WeatherEvaluator
         const int dispersion = 7;
         StringBuilder tempInfo = new();
 
-        if (value >= (normalPressure + dispersion))
+        if (value >= normalPressure + dispersion)
         {
             tempInfo.Append($"Повышенное атмосферное давление {value} мм.р.с.");
         }
-        if (value <= (normalPressure - dispersion))
+        if (value <= normalPressure - dispersion)
         {
             tempInfo.Append($"Пониженное атмосферное давление {value} мм.р.с.");
         }

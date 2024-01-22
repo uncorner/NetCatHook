@@ -1,5 +1,4 @@
 ﻿using NetCatHook.Scraper.App.HtmlProcessing;
-using NetCatHook.Scraper.Domain;
 
 namespace NetCatHook.Scraper.App.FetchingSchedulers;
 

@@ -1,7 +1,6 @@
 ﻿using NetCatHook.Scraper.App.Entities;
 using NetCatHook.Scraper.App.HtmlProcessing;
 using NetCatHook.Scraper.App.Repository;
-using NetCatHook.Scraper.Domain;
 
 namespace NetCatHook.Scraper.App.FetchingSchedulers;
 

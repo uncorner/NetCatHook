@@ -1,4 +1,4 @@
-﻿using NetCatHook.Scraper.Domain;
+﻿using NetCatHook.Scraper.App;
 using Xunit.Abstractions;
 
 namespace NetCatHook.ScraperTests.App;

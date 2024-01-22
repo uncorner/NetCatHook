@@ -1,4 +1,4 @@
-﻿namespace NetCatHook.Scraper.Domain;
+﻿namespace NetCatHook.Scraper.App;
 
 record class WeatherData(bool Processed, int? TemperatureAir = null,
     string? Description = null, int? Humidity = null, int? Pressure = null,
