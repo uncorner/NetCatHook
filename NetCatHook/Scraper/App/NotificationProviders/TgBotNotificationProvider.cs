@@ -21,7 +21,7 @@ class TgBotNotificationProvider : INotificationProvider
     private bool disposed = false;
     private ConcurrentDictionary<long, bool> cachedChatIds = new();
     private WeatherReport? cachedLastWeatherReport;
-    private object reportSyncObject = new();
+    private readonly object reportSyncObject = new();
 
     public TgBotNotificationProvider(ILogger<TgBotNotificationProvider> logger,
         HttpClient httpClient,

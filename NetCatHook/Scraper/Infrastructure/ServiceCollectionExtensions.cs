@@ -1,11 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
-using NetCatHook.Scraper.App;
-using NetCatHook.Scraper.App.FetchingSchedulers;
+﻿using NetCatHook.Scraper.App;
 using NetCatHook.Scraper.App.HostedServices;
 using NetCatHook.Scraper.App.HtmlProcessing;
 using NetCatHook.Scraper.App.NotificationProviders;
 using NetCatHook.Scraper.App.Parsing;
 using NetCatHook.Scraper.App.Repository;
+using NetCatHook.Scraper.App.Schedulers;
 using NetCatHook.Scraper.App.Telegram;
 using NetCatHook.Scraper.Infrastructure.HtmlProcessing;
 using NetCatHook.Scraper.Infrastructure.Repository;
@@ -20,15 +19,13 @@ static class ServiceCollectionExtensions
         services.AddTransient<IUnitOfWorkFactory, UnitOfWorkFactory>();
         services.AddDbContextFactory<ApplicationDbContext>();
 
-        services.AddSingleton<WeatherNotifyer>();
         AddHtmlDownloader(services, config);
 
         services.AddTransient<IWeatherHtmlParser, WeatherHtmlParser>();
-        services.AddTransient<IFetchingScheduler, RandomTimeoutFetchingScheduler>();
+        services.AddTransient<IWorkScheduler, RandomTimeoutScheduler>();
         AddNotificationProvider(services, config);
 
-        services.AddHostedService<NotificationHostedService>();
-        services.AddHostedService<FetchingSchedulerHostedService>();
+        services.AddHostedService<MessengerHostedService>();
     }
 
     private static void AddNotificationProvider(IServiceCollection services, ConfigurationManager config)
