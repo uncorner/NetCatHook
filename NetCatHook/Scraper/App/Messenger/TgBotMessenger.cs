@@ -6,13 +6,12 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot;
-using NetCatHook.Scraper.App.NotificationProviders;
 
-namespace NetCatHook.Scraper.App.Telegram;
+namespace NetCatHook.Scraper.App.Messenger;
 
-class TgBotNotificationProvider : INotificationProvider
+class TgBotMessenger : IMessenger
 {
-    private readonly ILogger<TgBotNotificationProvider> logger;
+    private readonly ILogger<TgBotMessenger> logger;
     private readonly HttpClient httpClient;
     private readonly IConfiguration configuration;
     private readonly IUnitOfWorkFactory unitOfWorkFactory;
@@ -23,7 +22,7 @@ class TgBotNotificationProvider : INotificationProvider
     private WeatherReport? cachedLastWeatherReport;
     private readonly object reportSyncObject = new();
 
-    public TgBotNotificationProvider(ILogger<TgBotNotificationProvider> logger,
+    public TgBotMessenger(ILogger<TgBotMessenger> logger,
         HttpClient httpClient,
         IConfiguration configuration, IUnitOfWorkFactory unitOfWorkFactory)
     {
@@ -46,7 +45,7 @@ class TgBotNotificationProvider : INotificationProvider
                 }
             }
         }
-        
+
         return cachedLastWeatherReport;
     }
 
@@ -159,14 +158,14 @@ class TgBotNotificationProvider : INotificationProvider
         var chatId = message.Chat.Id;
         var report = GetSafeLastWeatherReport();
         var timeoutMinutes = configuration.GetParsingSchedulerTimeoutInMinutes();
-        var expiringTimeUtc = DateTime.UtcNow.AddMinutes(-timeoutMinutes*2);
+        var expiringTimeUtc = DateTime.UtcNow.AddMinutes(-timeoutMinutes * 2);
 
         var reportMessage = "Нет данных о погоде";
         if (report.CreatedAt >= expiringTimeUtc)
         {
             reportMessage = WeatherSummaryBuilder.Build(report);
         }
- 
+
         await botClient.SendTextMessageAsync(
                 chatId: chatId,
                 text: reportMessage,

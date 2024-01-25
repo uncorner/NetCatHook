@@ -1,8 +1,8 @@
 ﻿using NetCatHook.Scraper.App.Entities;
 
-namespace NetCatHook.Scraper.App.NotificationProviders;
+namespace NetCatHook.Scraper.App.Messenger;
 
-interface INotificationProvider : IDisposable
+interface IMessenger : IDisposable
 {
     public Task Initialize(CancellationToken cancellationToken);
 

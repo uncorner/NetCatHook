@@ -1,6 +1,6 @@
 ﻿using NetCatHook.Scraper.App.Entities;
 using NetCatHook.Scraper.App.HtmlProcessing;
-using NetCatHook.Scraper.App.NotificationProviders;
+using NetCatHook.Scraper.App.Messenger;
 using NetCatHook.Scraper.App.Repository;
 using NetCatHook.Scraper.App.Schedulers;
 
@@ -10,7 +10,7 @@ class MessengerHostedService : IHostedService
 {
     private readonly ILogger<MessengerHostedService> logger;
     private readonly IWorkScheduler scheduler;
-    private readonly INotificationProvider notificationProvider;
+    private readonly IMessenger messenger;
     private readonly IUnitOfWorkFactory unitOfWorkFactory;
     private readonly IHtmlSource htmlSource;
     private readonly IWeatherHtmlParser parser;
@@ -19,14 +19,14 @@ class MessengerHostedService : IHostedService
     public MessengerHostedService(
         ILogger<MessengerHostedService> logger,
         IWorkScheduler scheduler,
-        INotificationProvider notificationProvider,
+        IMessenger messenger,
         IUnitOfWorkFactory unitOfWorkFactory,
         IHtmlSource htmlSource, IWeatherHtmlParser parser,
         IConfiguration config)
     {
         this.logger = logger;
         this.scheduler = scheduler;
-        this.notificationProvider = notificationProvider;
+        this.messenger = messenger;
         this.unitOfWorkFactory = unitOfWorkFactory;
         this.htmlSource = htmlSource;
         this.parser = parser;
@@ -72,7 +72,7 @@ class MessengerHostedService : IHostedService
                 }
 
                 var savingTask = SaveWeatherReport(report);
-                var sendingTask = notificationProvider.SendData(sendingMessage, report);
+                var sendingTask = messenger.SendData(sendingMessage, report);
                 await Task.WhenAll(savingTask, sendingTask);
             }
             else
@@ -106,7 +106,7 @@ class MessengerHostedService : IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         logger.LogInformation($"Start {nameof(MessengerHostedService)}");
-        await notificationProvider.Initialize(cancellationToken);
+        await messenger.Initialize(cancellationToken);
         
         scheduler.Event += ProcessScheduler;
         scheduler.Start();
@@ -117,7 +117,7 @@ class MessengerHostedService : IHostedService
         logger.LogInformation($"Stop {nameof(MessengerHostedService)}");
         scheduler.Event -= ProcessScheduler;
         scheduler.Dispose();
-        notificationProvider.Dispose();
+        messenger.Dispose();
 
         return Task.CompletedTask;
     }
