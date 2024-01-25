@@ -1,4 +1,6 @@
-﻿namespace NetCatHook.Scraper.App.HtmlProcessing;
+﻿using NetCatHook.Scraper.App.HtmlProcessing;
+
+namespace NetCatHook.Scraper.Infrastructure.HtmlProcessing;
 
 class FakeHtmlDownloader : IHtmlSource
 {

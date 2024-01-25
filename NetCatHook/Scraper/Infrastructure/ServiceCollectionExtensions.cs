@@ -19,7 +19,7 @@ static class ServiceCollectionExtensions
         services.AddTransient<IUnitOfWorkFactory, UnitOfWorkFactory>();
         services.AddDbContextFactory<ApplicationDbContext>();
 
-        AddHtmlDownloader(services, config);
+        AddHtmlSource(services, config);
 
         services.AddTransient<IWeatherHtmlParser, WeatherHtmlParser>();
         services.AddTransient<IWorkScheduler, RandomTimeoutScheduler>();
@@ -41,24 +41,17 @@ static class ServiceCollectionExtensions
         }
     }
 
-    private static void AddHtmlDownloader(IServiceCollection services, ConfigurationManager config)
+    private static void AddHtmlSource(IServiceCollection services, ConfigurationManager config)
     {
         if (config.GetFakeHtmlDownloaderEnabled())
         {
             services.AddTransient<IHtmlSource,
-                FakeHtmlDownloader>((service) => CreateFakeHtmlDownloader(service, string.Empty));
+                FakeHtmlDownloader>((services) => FakeHtmlDownloaderFactory.FromFile(services));
         }
         else
         {
             services.AddTransient<IHtmlSource, BrowserHtmlDownloader>();
         }
-    }
-
-    private static FakeHtmlDownloader CreateFakeHtmlDownloader(IServiceProvider services, string html)
-    {
-        var logger = services.GetRequiredService<ILogger<FakeHtmlDownloader>>();
-        logger.LogInformation($"Using {nameof(FakeHtmlDownloader)}");
-        return new FakeHtmlDownloader(logger, html);
     }
 
 }
