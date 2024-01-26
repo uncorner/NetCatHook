@@ -6,7 +6,7 @@ using NetCatHook.Scraper.App.Schedulers;
 
 namespace NetCatHook.Scraper.App.HostedServices;
 
-class MessengerHostedService : IHostedService
+class MessengerHostedService : IHostedService, IWeatherInformer
 {
     private readonly ILogger<MessengerHostedService> logger;
     private readonly IWorkScheduler scheduler;
@@ -15,6 +15,8 @@ class MessengerHostedService : IHostedService
     private readonly IHtmlSource htmlSource;
     private readonly IWeatherHtmlParser parser;
     private readonly IConfiguration config;
+    private WeatherReport? cachedLastWeatherReport;
+    private readonly object reportSyncObject = new();
 
     public MessengerHostedService(
         ILogger<MessengerHostedService> logger,
@@ -31,6 +33,8 @@ class MessengerHostedService : IHostedService
         this.htmlSource = htmlSource;
         this.parser = parser;
         this.config = config;
+
+        this.messenger.SetWeatherInformer(this);
     }
 
     private async void ProcessScheduler()
@@ -58,22 +62,23 @@ class MessengerHostedService : IHostedService
                 var report = new WeatherReport();
                 report.SetWeatherData(weatherData);
                 report.CreatedAtLocal = DateTime.Now;
+                var savingReportTask = SaveWeatherReport(report);
 
                 var evalResult = WeatherEvaluator.Evaluate(weatherData);
-                string? sendingMessage = null;
+                var sendingTask = Task.CompletedTask;
+
                 if (evalResult.Processed && evalResult.TextMessage is not null)
                 {
-                    sendingMessage = evalResult.TextMessage;
+                    sendingTask = messenger.Send(evalResult.TextMessage);
                     logger.LogInformation("Weather notification message is sending");
                 }
                 else
                 {
                     logger.LogError("Weather data is not evaluated");
                 }
-
-                var savingTask = SaveWeatherReport(report);
-                var sendingTask = messenger.SendData(sendingMessage, report);
-                await Task.WhenAll(savingTask, sendingTask);
+                
+                await Task.WhenAll(savingReportTask, sendingTask);
+                SetSafeCachedLastWeatherReport(report);
             }
             else
             {
@@ -102,7 +107,55 @@ class MessengerHostedService : IHostedService
         await unitOfWork.SaveChangesAsync();
     }
 
+    private WeatherReport GetSafeLastWeatherReport()
+    {
+        if (cachedLastWeatherReport is null)
+        {
+            lock (reportSyncObject)
+            {
+                if (cachedLastWeatherReport is null)
+                {
+                    cachedLastWeatherReport = LoadLastWeatherReport();
+                    cachedLastWeatherReport ??= WeatherReport.CreateExpired();
+                }
+            }
+        }
+
+        return cachedLastWeatherReport;
+    }
+
+    private WeatherReport? LoadLastWeatherReport()
+    {
+        using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
+        var reportRepository = unitOfWork.CreateWeatherReportRepository();
+        return reportRepository.GetLast().Result;
+    }
+
+    private void SetSafeCachedLastWeatherReport(WeatherReport report)
+    {
+        lock (reportSyncObject)
+        {
+            cachedLastWeatherReport = report;
+        }
+    }
+
+    public string GetWeatherSummary()
+    {
+        var report = GetSafeLastWeatherReport();
+        var timeoutMinutes = config.GetParsingSchedulerTimeoutInMinutes();
+        var expiringTimeUtc = DateTime.UtcNow.AddMinutes(-timeoutMinutes * 2);
+
+        var summary = "Нет данных о погоде";
+        if (report.CreatedAt >= expiringTimeUtc)
+        {
+            summary = WeatherSummaryBuilder.Build(report);
+        }
+
+        return summary;
+    }
+
     #region IHostedService
+
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         logger.LogInformation($"Start {nameof(MessengerHostedService)}");
@@ -121,6 +174,7 @@ class MessengerHostedService : IHostedService
 
         return Task.CompletedTask;
     }
+    
     #endregion
 
 }

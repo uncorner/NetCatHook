@@ -19,8 +19,7 @@ class TgBotMessenger : IMessenger
     private readonly CancellationTokenSource botCts = new();
     private bool disposed = false;
     private ConcurrentDictionary<long, bool> cachedChatIds = new();
-    private WeatherReport? cachedLastWeatherReport;
-    private readonly object reportSyncObject = new();
+    private IWeatherInformer? weatherInformer = null!;
 
     public TgBotMessenger(ILogger<TgBotMessenger> logger,
         HttpClient httpClient,
@@ -30,30 +29,6 @@ class TgBotMessenger : IMessenger
         this.httpClient = httpClient;
         this.configuration = configuration;
         this.unitOfWorkFactory = unitOfWorkFactory;
-    }
-
-    private WeatherReport GetSafeLastWeatherReport()
-    {
-        if (cachedLastWeatherReport is null)
-        {
-            lock (reportSyncObject)
-            {
-                if (cachedLastWeatherReport is null)
-                {
-                    cachedLastWeatherReport = LoadLastWeatherReport();
-                    cachedLastWeatherReport ??= WeatherReport.CreateExpired();
-                }
-            }
-        }
-
-        return cachedLastWeatherReport;
-    }
-
-    private WeatherReport? LoadLastWeatherReport()
-    {
-        using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
-        var reportRepository = unitOfWork.CreateWeatherReportRepository();
-        return reportRepository.GetLast().Result;
     }
 
     public async Task Initialize(CancellationToken cancellationToken)
@@ -99,19 +74,14 @@ class TgBotMessenger : IMessenger
         return new ConcurrentDictionary<long, bool>(chatIdPairs);
     }
 
-    public async Task SendData(string? message, WeatherReport weatherReport)
+    public async Task Send(string message)
     {
         if (disposed)
         {
             return;
         }
-
-        SetSafeCachedLastWeatherReport(weatherReport);
-
-        if (message is not null)
-        {
-            await SendMessageToAllChats(message);
-        }
+        
+        await SendMessageToAllChats(message);
     }
 
     private async Task SendMessageToAllChats(string message)
@@ -134,14 +104,6 @@ class TgBotMessenger : IMessenger
         await Task.WhenAll(messageTasks);
     }
 
-    private void SetSafeCachedLastWeatherReport(WeatherReport report)
-    {
-        lock (reportSyncObject)
-        {
-            cachedLastWeatherReport = report;
-        }
-    }
-
     private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
     {
         // Only process Message updates: https://core.telegram.org/bots/api#message
@@ -156,19 +118,11 @@ class TgBotMessenger : IMessenger
         }
 
         var chatId = message.Chat.Id;
-        var report = GetSafeLastWeatherReport();
-        var timeoutMinutes = configuration.GetParsingSchedulerTimeoutInMinutes();
-        var expiringTimeUtc = DateTime.UtcNow.AddMinutes(-timeoutMinutes * 2);
-
-        var reportMessage = "Нет данных о погоде";
-        if (report.CreatedAt >= expiringTimeUtc)
-        {
-            reportMessage = WeatherSummaryBuilder.Build(report);
-        }
+        var weatherSummary = weatherInformer!.GetWeatherSummary();
 
         await botClient.SendTextMessageAsync(
                 chatId: chatId,
-                text: reportMessage,
+                text: weatherSummary,
                 cancellationToken: cancellationToken);
 
         var isNewChat = cachedChatIds.TryAdd(chatId, default);
@@ -205,6 +159,11 @@ class TgBotMessenger : IMessenger
         return Task.CompletedTask;
     }
 
+    public void SetWeatherInformer(IWeatherInformer weatherInformer)
+    {
+        this.weatherInformer = weatherInformer;
+    }
+
     #region IDisposable
     public void Dispose()
     {
@@ -219,6 +178,8 @@ class TgBotMessenger : IMessenger
         disposed = true;
         logger.LogInformation("Tg Bot disposed");
     }
+
+    
     #endregion
 
 }

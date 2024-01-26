@@ -17,7 +17,7 @@ class LoggerMessenger : IMessenger
         return Task.CompletedTask;
     }
 
-    public Task SendData(string? message, WeatherReport weatherReport)
+    public Task Send(string? message)
     {
         logger.LogInformation($"Notification message: {message}");
         return Task.CompletedTask;
@@ -28,4 +28,8 @@ class LoggerMessenger : IMessenger
         //do nothing
     }
 
+    public void SetWeatherInformer(IWeatherInformer weatherInformer)
+    {
+        //do nothing
+    }
 }

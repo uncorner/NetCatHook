@@ -6,5 +6,7 @@ interface IMessenger : IDisposable
 {
     public Task Initialize(CancellationToken cancellationToken);
 
-    public Task SendData(string? message, WeatherReport weatherReport);
+    public void SetWeatherInformer(IWeatherInformer weatherInformer);
+
+    public Task Send(string message);
 }
