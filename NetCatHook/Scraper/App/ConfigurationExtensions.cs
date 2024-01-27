@@ -32,4 +32,9 @@ static class ConfigurationExtensions
         return config.GetValue<bool>("LoggerNotificationsEnabled");
     }
 
+    public static IEnumerable<string> GetParsingUserAgentList(this IConfiguration config)
+    {
+        return config.GetSection("ParsingUserAgentList").Get<IEnumerable<string>>()!;
+    }
+
 }

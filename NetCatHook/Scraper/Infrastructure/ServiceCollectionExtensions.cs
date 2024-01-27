@@ -49,7 +49,8 @@ static class ServiceCollectionExtensions
         }
         else
         {
-            services.AddTransient<IHtmlSource, BrowserHtmlDownloader>();
+            services.AddHttpClient<NativeHtmlDownloader>();
+            services.AddTransient<IHtmlSource, NativeHtmlDownloader>();
         }
     }
 
