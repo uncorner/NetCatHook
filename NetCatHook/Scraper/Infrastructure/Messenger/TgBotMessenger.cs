@@ -6,8 +6,10 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot;
+using NetCatHook.Scraper.App;
+using NetCatHook.Scraper.App.Messenger;
 
-namespace NetCatHook.Scraper.App.Messenger;
+namespace NetCatHook.Scraper.Infrastructure.Messenger;
 
 class TgBotMessenger : IMessenger
 {
@@ -80,7 +82,7 @@ class TgBotMessenger : IMessenger
         {
             return;
         }
-        
+
         await SendMessageToAllChats(message);
     }
 
@@ -179,7 +181,7 @@ class TgBotMessenger : IMessenger
         logger.LogInformation("Tg Bot disposed");
     }
 
-    
+
     #endregion
 
 }

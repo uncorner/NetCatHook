@@ -1,6 +1,7 @@
-﻿using NetCatHook.Scraper.App.Entities;
+﻿using NetCatHook.Scraper.App;
+using NetCatHook.Scraper.App.Messenger;
 
-namespace NetCatHook.Scraper.App.Messenger;
+namespace NetCatHook.Scraper.Infrastructure.Messenger;
 
 class LoggerMessenger : IMessenger
 {

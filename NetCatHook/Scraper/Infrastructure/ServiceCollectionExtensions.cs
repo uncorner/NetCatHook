@@ -2,10 +2,10 @@
 using NetCatHook.Scraper.App.HostedServices;
 using NetCatHook.Scraper.App.HtmlProcessing;
 using NetCatHook.Scraper.App.Messenger;
-using NetCatHook.Scraper.App.Parsing;
 using NetCatHook.Scraper.App.Repository;
 using NetCatHook.Scraper.App.Schedulers;
 using NetCatHook.Scraper.Infrastructure.HtmlProcessing;
+using NetCatHook.Scraper.Infrastructure.Messenger;
 using NetCatHook.Scraper.Infrastructure.Repository;
 
 namespace NetCatHook.Scraper.Infrastructure;

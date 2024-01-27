@@ -1,7 +1,7 @@
-﻿using NetCatHook.Scraper.App.Parsing;
+﻿using NetCatHook.Scraper.Infrastructure.HtmlProcessing;
 using Xunit.Abstractions;
 
-namespace NetCatHook.ScraperTests.App.HtmlProcessing;
+namespace NetCatHook.ScraperTests.Infrastructure.HtmlProcessing;
 
 public partial class WeatherHtmlParserTest
 {
