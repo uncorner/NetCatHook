@@ -14,9 +14,9 @@ namespace NetCatHook.Scraper.Infrastructure.Messenger;
 class TgBotMessenger : IMessenger
 {
     private readonly ILogger<TgBotMessenger> logger;
-    private readonly HttpClient httpClient;
     private readonly IConfiguration configuration;
     private readonly IUnitOfWorkFactory unitOfWorkFactory;
+    private readonly IHttpClientFactory httpClientFactory;
     private TelegramBotClient? botClient;
     private readonly CancellationTokenSource botCts = new();
     private bool disposed = false;
@@ -24,13 +24,14 @@ class TgBotMessenger : IMessenger
     private IWeatherInformer? weatherInformer = null!;
 
     public TgBotMessenger(ILogger<TgBotMessenger> logger,
-        HttpClient httpClient,
-        IConfiguration configuration, IUnitOfWorkFactory unitOfWorkFactory)
+        IConfiguration configuration,
+        IUnitOfWorkFactory unitOfWorkFactory,
+        IHttpClientFactory httpClientFactory)
     {
         this.logger = logger;
-        this.httpClient = httpClient;
         this.configuration = configuration;
         this.unitOfWorkFactory = unitOfWorkFactory;
+        this.httpClientFactory = httpClientFactory;
     }
 
     public async Task Initialize(CancellationToken cancellationToken)
@@ -41,6 +42,8 @@ class TgBotMessenger : IMessenger
         {
             throw new ApplicationException("Tg Bot secure token not found");
         }
+
+        var httpClient = httpClientFactory.CreateClient();
         botClient = new TelegramBotClient(secureToken, httpClient);
 
         // StartReceiving does not block the caller thread. Receiving is done on the ThreadPool.

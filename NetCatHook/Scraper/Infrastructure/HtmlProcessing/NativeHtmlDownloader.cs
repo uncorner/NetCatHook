@@ -7,7 +7,7 @@ namespace NetCatHook.Scraper.Infrastructure.HtmlProcessing;
 class NativeHtmlDownloader : IHtmlSource
 {
     private readonly IConfiguration config;
-    private readonly HttpClient httpClient;
+    private readonly IHttpClientFactory httpClientFactory;
     private readonly string[] userAgentList;
 
     public int SlowMo { get => default; set => _ = default(int); }
@@ -17,15 +17,17 @@ class NativeHtmlDownloader : IHtmlSource
         ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls13;
     }
 
-    public NativeHtmlDownloader(IConfiguration config, HttpClient httpClient)
+    public NativeHtmlDownloader(IConfiguration config,
+        IHttpClientFactory httpClientFactory)
     {
         this.config = config;
-        this.httpClient = httpClient;
+        this.httpClientFactory = httpClientFactory;
         userAgentList = this.config.GetParsingUserAgentList().ToArray();
     }
 
     public async Task<string> GetHtmlDataAsync(string url)
     {
+        var httpClient = httpClientFactory.CreateClient();
         httpClient.DefaultRequestHeaders.Accept.Clear();
         httpClient.DefaultRequestHeaders.Add("User-Agent", GetRandomUserAgent());
 

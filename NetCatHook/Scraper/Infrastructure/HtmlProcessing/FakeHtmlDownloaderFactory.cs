@@ -2,6 +2,8 @@
 
 static class FakeHtmlDownloaderFactory
 {
+    private const string FakeWeatherPageFile = @"c:\NetCatHook_TestData\weather_page.html";
+
     public static FakeHtmlDownloader FromFile(IServiceProvider services)
     {
         var logger = services.GetRequiredService<ILogger<FakeHtmlDownloader>>();
@@ -13,15 +15,13 @@ static class FakeHtmlDownloaderFactory
 
     private static string LoadHtmlFromFile(ILogger<FakeHtmlDownloader> logger)
     {
-        string path = @"d:\NetCatHook_TestData\weather_page.html";
-
-        if (!File.Exists(path))
+        if (!File.Exists(FakeWeatherPageFile))
         {
-            logger.LogError($"File not exists: {path}");
+            logger.LogError($"File not exists: {FakeWeatherPageFile}");
             return string.Empty;
         }
 
-        return File.ReadAllText(path);
+        return File.ReadAllText(FakeWeatherPageFile);
     }
 
 }

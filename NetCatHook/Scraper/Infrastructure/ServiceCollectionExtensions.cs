@@ -15,6 +15,8 @@ static class ServiceCollectionExtensions
     public static void AddCustomServices(this IServiceCollection services,
         ConfigurationManager config)
     {
+        services.AddHttpClient();
+
         services.AddTransient<IUnitOfWorkFactory, UnitOfWorkFactory>();
         services.AddDbContextFactory<ApplicationDbContext>();
 
@@ -35,7 +37,6 @@ static class ServiceCollectionExtensions
         }
         else
         {
-            services.AddHttpClient<TgBotMessenger>();
             services.AddTransient<IMessenger, TgBotMessenger>();
         }
     }
@@ -49,7 +50,6 @@ static class ServiceCollectionExtensions
         }
         else
         {
-            services.AddHttpClient<NativeHtmlDownloader>();
             services.AddTransient<IHtmlSource, NativeHtmlDownloader>();
         }
     }
