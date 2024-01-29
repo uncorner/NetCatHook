@@ -8,6 +8,7 @@ class NativeHtmlDownloader : IHtmlSource
 {
     private readonly IConfiguration config;
     private readonly IHttpClientFactory httpClientFactory;
+    private readonly ILogger<NativeHtmlDownloader> logger;
     private readonly string[] userAgentList;
 
     public int SlowMo { get => default; set => _ = default(int); }
@@ -18,10 +19,12 @@ class NativeHtmlDownloader : IHtmlSource
     }
 
     public NativeHtmlDownloader(IConfiguration config,
-        IHttpClientFactory httpClientFactory)
+        IHttpClientFactory httpClientFactory,
+        ILogger<NativeHtmlDownloader> logger)
     {
         this.config = config;
         this.httpClientFactory = httpClientFactory;
+        this.logger = logger;
         userAgentList = this.config.GetParsingUserAgentList().ToArray();
     }
 
@@ -29,17 +32,19 @@ class NativeHtmlDownloader : IHtmlSource
     {
         var httpClient = httpClientFactory.CreateClient();
         httpClient.DefaultRequestHeaders.Accept.Clear();
-        httpClient.DefaultRequestHeaders.Add("User-Agent", GetRandomUserAgent());
+        var userAgent = GetRandomUserAgent();
+        logger.LogInformation($"Set random User-Agent [{userAgent.Item1}], '{userAgent.Item2}'");
+        httpClient.DefaultRequestHeaders.Add("User-Agent", userAgent.Item2);
 
         var response = httpClient.GetStringAsync(url);
         return await response;
     }
 
-    private string GetRandomUserAgent()
+    private (int,string) GetRandomUserAgent()
     {
         var random = new Random();
         int randomIndex = random.Next(userAgentList.Length);
-        return userAgentList[randomIndex];
+        return (randomIndex, userAgentList[randomIndex]);
     }
 
 }
