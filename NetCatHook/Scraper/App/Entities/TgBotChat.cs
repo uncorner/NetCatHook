@@ -9,5 +9,7 @@ class TgBotChat
 
     public long ChatId { get; set; }
 
+    public bool IsEnabled { get; set; }
+
 }
 

@@ -8,6 +8,9 @@ using Telegram.Bot.Types;
 using Telegram.Bot;
 using NetCatHook.Scraper.App;
 using NetCatHook.Scraper.App.Messenger;
+using System;
+using Telegram.Bot.Types.ReplyMarkups;
+using System.Text;
 
 namespace NetCatHook.Scraper.Infrastructure.Messenger;
 
@@ -49,8 +52,16 @@ class TgBotMessenger : IMessenger
         // StartReceiving does not block the caller thread. Receiving is done on the ThreadPool.
         ReceiverOptions receiverOptions = new()
         {
-            AllowedUpdates = Array.Empty<UpdateType>()
+            //AllowedUpdates = Array.Empty<UpdateType>()
             // receive all update types except ChatMember related updates
+
+            //>>>>>>>>>>>>>>>>>>>
+            AllowedUpdates = new[] {
+                UpdateType.Message,
+                //UpdateType.CallbackQuery // Inline кнопки
+            },
+            // do not process updates when offline
+            ThrowPendingUpdates = true
         };
 
         botClient.StartReceiving(
@@ -109,47 +120,126 @@ class TgBotMessenger : IMessenger
         await Task.WhenAll(messageTasks);
     }
 
+    private string GetResultUserName(User? user)
+    {
+        const string defaultUserName = "Пользователь";
+        if (user is null)
+        {
+            return defaultUserName;
+        }
+
+        StringBuilder name = new();
+        if (user.FirstName is not null)
+        {
+            name.Append(user.FirstName);
+        }
+        if (user.LastName is not null)
+        {
+            name.Append(" " + user.LastName);
+        }
+
+        if (name.Length == 0)
+        {
+            if (user.Username is not null)
+            {
+                name.Append(user.Username);
+            }
+            else
+            {
+                name.Append(defaultUserName);
+            }
+        }
+
+        return name.ToString();
+    }
+
     private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
     {
-        // Only process Message updates: https://core.telegram.org/bots/api#message
-        if (update.Message is not { } message)
+        try
         {
-            return;
+            // Only process Message updates
+            if (update.Message is not { } message)
+            {
+                return;
+            }
+            // Only process text messages
+            if (string.IsNullOrWhiteSpace(message.Text))
+            {
+                return;
+            }
+
+            var tgChatId = message.Chat.Id;
+
+            if (message.Text == "/start")
+            {
+                //сохранить в бд новый чат юзера
+                await SaveChatAsEnabled(tgChatId);
+                cachedChatIds.TryAdd(tgChatId, default);
+
+                //поприветсвовать юзера по нику или имени
+                var userName = GetResultUserName(message.From);
+                var helloStr = $"Здравствуйте, {userName}";
+                await botClient.SendTextMessageAsync(
+                        chatId: tgChatId,
+                        text: helloStr,
+                        cancellationToken: cancellationToken);
+
+                return;
+            }
+
+            //>>>>>>>>>>>>
+            //var weatherSummary = weatherInformer!.GetWeatherSummary();
+            //await botClient.SendTextMessageAsync(
+            //        chatId: chatId,
+            //        text: weatherSummary,
+            //        cancellationToken: cancellationToken);
+
+            //var isNewChat = cachedChatIds.TryAdd(chatId, default);
+            //if (isNewChat)
+            //{
+            //    await SaveChatIfNotExists(chatId);
+            //}
         }
-        // Only process text messages
-        if (message.Text is not { } messageText)
-        {
-            return;
-        }
-
-        var chatId = message.Chat.Id;
-        var weatherSummary = weatherInformer!.GetWeatherSummary();
-
-        await botClient.SendTextMessageAsync(
-                chatId: chatId,
-                text: weatherSummary,
-                cancellationToken: cancellationToken);
-
-        var isNewChat = cachedChatIds.TryAdd(chatId, default);
-        if (isNewChat)
-        {
-            await SaveChatIfNotExists(chatId);
+        catch (Exception ex) {
+            // TODO
+            //logger.
         }
     }
 
-    private async Task SaveChatIfNotExists(long chatId)
+    private async Task SaveChatAsEnabled(long chatId)
     {
         await using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
         var repository = unitOfWork.CreateTgBotChatRepository();
 
-        var savedChat = await repository.GetByChatId(chatId);
-        if (savedChat is null)
+        var chat = await repository.GetByChatId(chatId);
+        if (chat is null)
         {
-            var tgBotChat = new TgBotChat() { ChatId = chatId };
-            await repository.Add(tgBotChat);
-            await unitOfWork.SaveChangesAsync();
+            var newChat = new TgBotChat() {
+                ChatId = chatId, IsEnabled = true
+            };
+            await repository.Add(newChat);
         }
+        else
+        {
+            chat.IsEnabled = true;
+        }
+
+        await unitOfWork.SaveChangesAsync();
     }
+
+    //private async Task SaveChatIfNotExists(long chatId)
+    //{
+    //    await using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
+    //    var repository = unitOfWork.CreateTgBotChatRepository();
+
+    //    var savedChat = await repository.GetByChatId(chatId);
+    //    if (savedChat is null)
+    //    {
+    //        var tgBotChat = new TgBotChat() { ChatId = chatId };
+    //        await repository.Add(tgBotChat);
+    //        await unitOfWork.SaveChangesAsync();
+    //    }
+    //}
 
     private Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
     {
@@ -183,8 +273,6 @@ class TgBotMessenger : IMessenger
         disposed = true;
         logger.LogInformation("Tg Bot disposed");
     }
-
-
     #endregion
 
 }

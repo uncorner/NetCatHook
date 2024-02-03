@@ -88,7 +88,8 @@ class MessengerHostedService : IHostedService, IWeatherInformer
         }
         catch (Exception ex)
         {
-            logger.LogError($"Weather report failed. Error: {ex.Message}, Inner: {ex.InnerException?.Message ?? "none"}");
+            //logger.LogError($"Weather report failed. Error: {ex.Message}, Inner: {ex.InnerException?.Message ?? "none"}");
+            logger.LogError(ex.ToString());
         }
     }
 
