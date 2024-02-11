@@ -8,9 +8,8 @@ using Telegram.Bot.Types;
 using Telegram.Bot;
 using NetCatHook.Scraper.App;
 using NetCatHook.Scraper.App.Messenger;
-using System;
-using Telegram.Bot.Types.ReplyMarkups;
 using System.Text;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace NetCatHook.Scraper.Infrastructure.Messenger;
 
@@ -20,11 +19,13 @@ class TgBotMessenger : IMessenger
     private readonly IConfiguration configuration;
     private readonly IUnitOfWorkFactory unitOfWorkFactory;
     private readonly IHttpClientFactory httpClientFactory;
-    private TelegramBotClient? botClient;
+    private ITelegramBotClient? botClient;
     private readonly CancellationTokenSource botCts = new();
     private bool disposed = false;
     private ConcurrentDictionary<long, bool> cachedChatIds = new();
     private IWeatherInformer? weatherInformer = null!;
+    private const string NowCommandMessage = "Используйте команду /now чтобы узнать погоду на данный момент";
+    private const string NowCommandMessageText = "Узнать погоду";
 
     public TgBotMessenger(ILogger<TgBotMessenger> logger,
         IConfiguration configuration,
@@ -49,16 +50,12 @@ class TgBotMessenger : IMessenger
         var httpClient = httpClientFactory.CreateClient();
         botClient = new TelegramBotClient(secureToken, httpClient);
 
-        // StartReceiving does not block the caller thread. Receiving is done on the ThreadPool.
         ReceiverOptions receiverOptions = new()
         {
-            //AllowedUpdates = Array.Empty<UpdateType>()
-            // receive all update types except ChatMember related updates
-
-            //>>>>>>>>>>>>>>>>>>>
             AllowedUpdates = new[] {
                 UpdateType.Message,
                 //UpdateType.CallbackQuery // Inline кнопки
+                UpdateType.MyChatMember,
             },
             // do not process updates when offline
             ThrowPendingUpdates = true
@@ -83,7 +80,7 @@ class TgBotMessenger : IMessenger
     {
         await using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
         var repository = unitOfWork.CreateTgBotChatRepository();
-        var chats = await repository.GetAll();
+        var chats = await repository.GetAllEnabled();
         var chatIdPairs = chats.Select(chat =>
             new KeyValuePair<long, bool>(chat.ChatId, default)).ToArray();
 
@@ -120,7 +117,7 @@ class TgBotMessenger : IMessenger
         await Task.WhenAll(messageTasks);
     }
 
-    private string GetResultUserName(User? user)
+    private static string GetResultUserName(User? user)
     {
         const string defaultUserName = "Пользователь";
         if (user is null)
@@ -157,56 +154,119 @@ class TgBotMessenger : IMessenger
     {
         try
         {
-            // Only process Message updates
-            if (update.Message is not { } message)
+            switch(update.Type)
             {
-                return;
+                case UpdateType.Message:
+                    logger.LogInformation($"UpdateType.Message, Chat id {update.Message?.Chat.Id}, Text '{update.Message?.Text}'");
+
+                    if (update.Message is not { } message)
+                    {
+                        return;
+                    }
+                    if (string.IsNullOrWhiteSpace(message.Text))
+                    {
+                        return;
+                    }
+
+                    await SaveChatIfNoCached(message.Chat.Id);
+
+                    var messageText = message.Text.Trim();
+                    if (messageText.StartsWith('/'))
+                    {
+                        messageText = messageText.ToLowerInvariant();
+                    }
+                    
+                    switch (messageText)
+                    {
+                        case "/start":
+                            await HandleStartCommand(message, cancellationToken);
+                            break;
+                        case "/now" or NowCommandMessageText:
+                            await HandleNowCommand(message, cancellationToken);
+                            break;
+                        default:
+                            await HandleOtherMessage(message, cancellationToken);
+                            break;
+                    }
+
+                    break;
+                case UpdateType.MyChatMember:
+                    if (update.MyChatMember is not { } memberUpdated)
+                    {
+                        return;
+                    }
+                    await HandleMyChatMemberUpdated(memberUpdated);
+                    break;
+                default:
+                    logger.LogWarning($"Unhandled Update type: {update.Type}");
+                    break;
             }
-            // Only process text messages
-            if (string.IsNullOrWhiteSpace(message.Text))
-            {
-                return;
-            }
-
-            var tgChatId = message.Chat.Id;
-
-            if (message.Text == "/start")
-            {
-                //сохранить в бд новый чат юзера
-                await SaveChatAsEnabled(tgChatId);
-                cachedChatIds.TryAdd(tgChatId, default);
-
-                //поприветсвовать юзера по нику или имени
-                var userName = GetResultUserName(message.From);
-                var helloStr = $"Здравствуйте, {userName}";
-                await botClient.SendTextMessageAsync(
-                        chatId: tgChatId,
-                        text: helloStr,
-                        cancellationToken: cancellationToken);
-
-                return;
-            }
-
-            //>>>>>>>>>>>>
-            //var weatherSummary = weatherInformer!.GetWeatherSummary();
-            //await botClient.SendTextMessageAsync(
-            //        chatId: chatId,
-            //        text: weatherSummary,
-            //        cancellationToken: cancellationToken);
-
-            //var isNewChat = cachedChatIds.TryAdd(chatId, default);
-            //if (isNewChat)
-            //{
-            //    await SaveChatIfNotExists(chatId);
-            //}
         }
         catch (Exception ex) {
-            // TODO
-            //logger.
+            logger.LogError($"Error in {nameof(HandleUpdateAsync)}: {ex}");
         }
     }
 
-    private async Task SaveChatAsEnabled(long chatId)
+    private async Task HandleOtherMessage(Message message, CancellationToken cancellationToken)
+    {
+        _ = await botClient!.SendTextMessageAsync(
+            chatId: message.Chat.Id,
+            text: NowCommandMessage,
+            cancellationToken: cancellationToken,
+            replyMarkup: GetKeyboardNowCommand());
+    }
+
+    private async Task HandleMyChatMemberUpdated(ChatMemberUpdated updated)
+    {
+        if (updated is { OldChatMember.Status: ChatMemberStatus.Member,
+            NewChatMember.Status: ChatMemberStatus.Kicked or ChatMemberStatus.Left } )
+        {
+            logger.LogInformation($"{nameof(HandleMyChatMemberUpdated)}, save chat id {updated.Chat.Id} as Disabled");
+            cachedChatIds.TryRemove(updated.Chat.Id, out _);
+            await SaveChat(updated.Chat.Id, false);
+        }
+        else if(updated is { OldChatMember.Status: ChatMemberStatus.Kicked or ChatMemberStatus.Left,
+            NewChatMember.Status: ChatMemberStatus.Member })
+        {
+            logger.LogInformation($"{nameof(HandleMyChatMemberUpdated)}, chat id {updated.Chat.Id} Enabled");
+            await SaveChatIfNoCached(updated.Chat.Id);
+        }
+    }
+
+    private async Task HandleNowCommand(Message message, CancellationToken cancellationToken)
+    {
+        var weatherSummary = weatherInformer!.GetWeatherSummary();
+        _ = await botClient!.SendTextMessageAsync(
+                chatId: message.Chat.Id,
+                text: weatherSummary,
+                cancellationToken: cancellationToken,
+                replyMarkup: GetKeyboardNowCommand());
+    }
+
+    private async Task HandleStartCommand(Message message, CancellationToken cancellationToken)
+    {
+        var userName = GetResultUserName(message.From);
+        var helloStr = $"Здравствуйте, {userName}\n{NowCommandMessage}";
+        _ = await botClient!.SendTextMessageAsync(
+            chatId: message.Chat.Id,
+            text: helloStr,
+            cancellationToken: cancellationToken,
+            replyMarkup: GetKeyboardNowCommand());
+    }
+
+    private static ReplyKeyboardMarkup GetKeyboardNowCommand()
+    {
+        return new ReplyKeyboardMarkup(
+            new KeyboardButton[]
+            {
+                new KeyboardButton(NowCommandMessageText)
+            })
+        {
+            ResizeKeyboard = true
+        };
+    }
+
+    private async Task SaveChat(long chatId, bool isEnebled)
     {
         await using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
         var repository = unitOfWork.CreateTgBotChatRepository();
@@ -221,32 +281,28 @@ class TgBotMessenger : IMessenger
         }
         else
         {
-            chat.IsEnabled = true;
+            chat.IsEnabled = isEnebled;
         }
 
         await unitOfWork.SaveChangesAsync();
     }
 
-    //private async Task SaveChatIfNotExists(long chatId)
-    //{
-    //    await using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
-    //    var repository = unitOfWork.CreateTgBotChatRepository();
-
-    //    var savedChat = await repository.GetByChatId(chatId);
-    //    if (savedChat is null)
-    //    {
-    //        var tgBotChat = new TgBotChat() { ChatId = chatId };
-    //        await repository.Add(tgBotChat);
-    //        await unitOfWork.SaveChangesAsync();
-    //    }
-    //}
+    private async Task SaveChatIfNoCached(long chatId)
+    {
+        var isNew = cachedChatIds.TryAdd(chatId, default);
+        if (isNew)
+        {
+            logger.LogInformation($"Save new chat id {chatId}");
+            await SaveChat(chatId, true);
+        }
+    }
 
     private Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
     {
         var errorMessage = exception switch
         {
-            ApiRequestException apiRequestException
-                => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
+            ApiRequestException apiRequestException =>
+                $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
             _ => exception.ToString()
         };
 

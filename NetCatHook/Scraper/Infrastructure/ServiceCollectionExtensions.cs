@@ -17,8 +17,8 @@ static class ServiceCollectionExtensions
     {
         services.AddHttpClient();
 
-        //services.AddTransient<IUnitOfWorkFactory, UnitOfWorkFactory>();
-        services.AddTransient<IUnitOfWorkFactory, MemoryUnitOfWorkFactory>();
+        services.AddTransient<IUnitOfWorkFactory, UnitOfWorkFactory>();
+        //services.AddTransient<IUnitOfWorkFactory, MemoryUnitOfWorkFactory>();
         services.AddDbContextFactory<ApplicationDbContext>();
 
         AddHtmlSource(services, config);

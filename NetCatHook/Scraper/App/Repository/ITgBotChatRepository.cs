@@ -4,7 +4,7 @@ namespace NetCatHook.Scraper.App.Repository;
 
 interface ITgBotChatRepository
 {
-    Task<IEnumerable<TgBotChat>> GetAll();
+    Task<IEnumerable<TgBotChat>> GetAllEnabled();
 
     Task Add(TgBotChat chat);
 

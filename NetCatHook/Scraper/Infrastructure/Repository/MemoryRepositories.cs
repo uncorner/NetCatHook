@@ -60,9 +60,10 @@ file class MemoryTgBotChatRepository : ITgBotChatRepository
         return Task.CompletedTask;
     }
 
-    public Task<IEnumerable<TgBotChat>> GetAll()
+    public Task<IEnumerable<TgBotChat>> GetAllEnabled()
     {
-        return Task.FromResult(chatDict.Values.AsEnumerable());
+        var items = chatDict.Values.Where(e => e.IsEnabled).AsEnumerable();
+        return Task.FromResult(items);
     }
 
     public Task<TgBotChat?> GetByChatId(long chatId)
