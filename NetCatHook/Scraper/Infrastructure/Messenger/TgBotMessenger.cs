@@ -22,7 +22,7 @@ class TgBotMessenger : IMessenger
     private ITelegramBotClient? botClient;
     private readonly CancellationTokenSource botCts = new();
     private bool disposed = false;
-    private ConcurrentDictionary<long, bool> cachedChatIds = new();
+    private ConcurrentDictionary<long, ChatData> cachedChats = new();
     private IWeatherInformer? weatherInformer = null!;
     private const string NowCommandMessage = "Используйте команду /now чтобы узнать погоду на данный момент";
     private const string NowCommandMessageText = "Узнать погоду";
@@ -57,7 +57,7 @@ class TgBotMessenger : IMessenger
                 //UpdateType.CallbackQuery // Inline кнопки
                 UpdateType.MyChatMember,
             },
-            // do not process updates when offline
+            // if true do not process updates when offline
             ThrowPendingUpdates = true
         };
 
@@ -70,22 +70,33 @@ class TgBotMessenger : IMessenger
 
         var botUser = await botClient.GetMeAsync(cancellationToken);
 
-        cachedChatIds = await LoadBotChatIds();
-        logger.LogInformation($"Loaded Tg Bot chats: {cachedChatIds.Count}");
+        cachedChats = await LoadBotChats();
+        logger.LogInformation($"Loaded Tg Bot chats: {cachedChats.Count}");
 
         logger.LogInformation($"Tg Bot @{botUser.Username} started");
     }
 
-    private async Task<ConcurrentDictionary<long, bool>> LoadBotChatIds()
+    private async Task<ConcurrentDictionary<long, ChatData>> LoadBotChats()
     {
-        await using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
-        var repository = unitOfWork.CreateTgBotChatRepository();
-        var chats = await repository.GetAllEnabled();
-        var chatIdPairs = chats.Select(chat =>
-            new KeyValuePair<long, bool>(chat.ChatId, default)).ToArray();
+        var chatIdMap = Array.Empty<KeyValuePair<long, ChatData>>();
+        await using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
+        {
+            var repository = unitOfWork.CreateTgBotChatRepository();
+            var chats = await repository.GetAllEnabled();
+            chatIdMap = chats.Select(chat =>
+                new KeyValuePair<long, ChatData>(chat.ChatId, ConvertToChatData(chat)))
+                .ToArray();
+        }
 
-        return new ConcurrentDictionary<long, bool>(chatIdPairs);
+        return new ConcurrentDictionary<long, ChatData>(chatIdMap);
     }
+
+    private static ChatData ConvertToChatData(TgBotChat chat) => new ChatData
+    {
+        ChatId = chat.ChatId,
+        //IsEnabled = chat.IsEnabled,
+        IsNotifying = chat.IsNotifying
+    };
 
     public async Task Send(string message)
     {
@@ -99,17 +110,22 @@ class TgBotMessenger : IMessenger
 
     private async Task SendMessageToAllChats(string message)
     {
-        if (botClient is null || cachedChatIds.IsEmpty)
+        if (botClient is null || cachedChats.IsEmpty)
         {
             return;
         }
 
         var messageTasks = new List<Task>();
-        var copyOfChatIds = cachedChatIds.Keys;
-        foreach (var chatId in copyOfChatIds)
+        var notifyingChats = cachedChats.Values.Where(i => i.IsNotifying).ToArray();
+        if (!notifyingChats.Any())
+        {
+            return;
+        }
+
+        foreach (var chat in notifyingChats)
         {
             var task = botClient.SendTextMessageAsync(
-                chatId: chatId,
+                chatId: chat.ChatId,
                 text: message);
             messageTasks.Add(task);
         }
@@ -149,7 +165,7 @@ class TgBotMessenger : IMessenger
 
         return name.ToString();
     }
-
+    
     private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
     {
         try
@@ -157,46 +173,57 @@ class TgBotMessenger : IMessenger
             switch(update.Type)
             {
                 case UpdateType.Message:
-                    logger.LogInformation($"UpdateType.Message, Chat id {update.Message?.Chat.Id}, Text '{update.Message?.Text}'");
-
-                    if (update.Message is not { } message)
                     {
-                        return;
-                    }
-                    if (string.IsNullOrWhiteSpace(message.Text))
-                    {
-                        return;
-                    }
+                        logger.LogInformation($"UpdateType.Message, Chat id {update.Message?.Chat.Id}, Text '{update.Message?.Text}'");
 
-                    await SaveChatIfNoCached(message.Chat.Id);
+                        if (update.Message is not { } message)
+                        {
+                            return;
+                        }
+                        if (string.IsNullOrWhiteSpace(message.Text))
+                        {
+                            return;
+                        }
 
-                    var messageText = message.Text.Trim();
-                    if (messageText.StartsWith('/'))
-                    {
-                        messageText = messageText.ToLowerInvariant();
-                    }
-                    
-                    switch (messageText)
-                    {
-                        case "/start":
-                            await HandleStartCommand(message, cancellationToken);
-                            break;
-                        case "/now" or NowCommandMessageText:
-                            await HandleNowCommand(message, cancellationToken);
-                            break;
-                        default:
-                            await HandleOtherMessage(message, cancellationToken);
-                            break;
-                    }
+                        _ = await SaveNewChatIfNoCached(message.Chat.Id);
 
-                    break;
+                        var messageText = message.Text.Trim();
+                        if (messageText.StartsWith('/'))
+                        {
+                            messageText = messageText.ToLowerInvariant();
+                        }
+
+                        switch (messageText)
+                        {
+                            case "/start":
+                                await HandleStartCommand(message, cancellationToken);
+                                break;
+                            case "/now" or NowCommandMessageText:
+                                await HandleNowCommand(message, cancellationToken);
+                                break;
+                            case "/notificationson":
+                                await HandleNotifications(message, cancellationToken, true);
+                                break;
+                            case "/notificationsoff":
+                                await HandleNotifications(message, cancellationToken, false);
+                                break;
+                            default:
+                                await HandleOtherMessage(message, cancellationToken);
+                                break;
+                        }
+
+                        break;
+                    }
                 case UpdateType.MyChatMember:
-                    if (update.MyChatMember is not { } memberUpdated)
                     {
-                        return;
+                        if (update.MyChatMember is not { } cmUpdated)
+                        {
+                            return;
+                        }
+
+                        await HandleMyChatMemberUpdated(cmUpdated);
+                        break;
                     }
-                    await HandleMyChatMemberUpdated(memberUpdated);
-                    break;
                 default:
                     logger.LogWarning($"Unhandled Update type: {update.Type}");
                     break;
@@ -205,6 +232,21 @@ class TgBotMessenger : IMessenger
         catch (Exception ex) {
             logger.LogError($"Error in {nameof(HandleUpdateAsync)}: {ex}");
         }
+    }
+
+    private async Task HandleNotifications(Message message, CancellationToken cancellationToken, bool isNotifying)
+    {
+        var chatData = await UpdateChat(message.Chat.Id, (chat) =>
+        {
+            chat.IsNotifying = isNotifying;
+        });
+        AddOrUpdateCachedChat(chatData);
+
+        await botClient!.SendTextMessageAsync(
+            chatId: message.Chat.Id,
+            text: isNotifying ? "Включены уведомления о погоде" : "Отключены уведомления о погоде",
+            cancellationToken: cancellationToken,
+            replyMarkup: GetKeyboardNowCommand());
     }
 
     private async Task HandleOtherMessage(Message message, CancellationToken cancellationToken)
@@ -216,20 +258,25 @@ class TgBotMessenger : IMessenger
             replyMarkup: GetKeyboardNowCommand());
     }
 
-    private async Task HandleMyChatMemberUpdated(ChatMemberUpdated updated)
+    private async Task HandleMyChatMemberUpdated(ChatMemberUpdated cmUpdated)
     {
-        if (updated is { OldChatMember.Status: ChatMemberStatus.Member,
+        if (cmUpdated is { OldChatMember.Status: ChatMemberStatus.Member,
             NewChatMember.Status: ChatMemberStatus.Kicked or ChatMemberStatus.Left } )
         {
-            logger.LogInformation($"{nameof(HandleMyChatMemberUpdated)}, save chat id {updated.Chat.Id} as Disabled");
-            cachedChatIds.TryRemove(updated.Chat.Id, out _);
-            await SaveChat(updated.Chat.Id, false);
+            // chat disabled
+            logger.LogInformation($"{nameof(HandleMyChatMemberUpdated)}, save chat id {cmUpdated.Chat.Id} as Disabled");
+            await SaveOrUpdateChat(cmUpdated.Chat.Id, (chat) =>
+            {
+                chat.IsEnabled = false;
+            });
+            cachedChats.TryRemove(cmUpdated.Chat.Id, out _);
         }
-        else if(updated is { OldChatMember.Status: ChatMemberStatus.Kicked or ChatMemberStatus.Left,
+        else if(cmUpdated is { OldChatMember.Status: ChatMemberStatus.Kicked or ChatMemberStatus.Left,
             NewChatMember.Status: ChatMemberStatus.Member })
         {
-            logger.LogInformation($"{nameof(HandleMyChatMemberUpdated)}, chat id {updated.Chat.Id} Enabled");
-            await SaveChatIfNoCached(updated.Chat.Id);
+            // chat enebled
+            logger.LogInformation($"{nameof(HandleMyChatMemberUpdated)}, chat id {cmUpdated.Chat.Id} Enabled");
+            await SaveNewChatIfNoCached(cmUpdated.Chat.Id);
         }
     }
 
@@ -266,36 +313,98 @@ class TgBotMessenger : IMessenger
         };
     }
 
-    private async Task SaveChat(long chatId, bool isEnebled)
+    //private async Task UpdateChat(long chatId, Action<TgBotChat> updateAction)
+    //{
+    //    await using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
+    //    var repository = unitOfWork.CreateTgBotChatRepository();
+    //    var chat = await repository.GetByChatId(chatId);
+    //        //?? throw new Exception($"Tg chat with id {chatId} not found");
+
+    //    if (chat is null)
+    //    {
+    //        return;
+    //    }
+    //    updateAction(chat);
+    //    await unitOfWork.SaveChangesAsync();
+    //}
+
+    //private async Task<TgBotChat> SaveNewChatOrUpdateEnabled(long chatId)
+    //{
+    //    TgBotChat? chat;
+    //    await using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
+    //    {
+    //        var repository = unitOfWork.CreateTgBotChatRepository();
+
+    //        chat = await repository.GetByChatId(chatId);
+    //        if (chat is null)
+    //        {
+    //            chat = new TgBotChat()
+    //            {
+    //                ChatId = chatId
+    //            };
+    //            await repository.Add(chat);
+    //        }
+
+    //        chat.IsEnabled = true;
+    //        await unitOfWork.SaveChangesAsync();
+    //    }
+
+    //    return chat;
+    //}
+
+    private async Task<ChatData> UpdateChat(long chatId, Action<TgBotChat> updateAction)
     {
         await using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
         var repository = unitOfWork.CreateTgBotChatRepository();
+        var chat = await repository.GetByChatId(chatId) ?? throw new Exception($"Tg chat with id {chatId} not found");
 
+        updateAction(chat);
+        await unitOfWork.SaveChangesAsync();
+
+        return ConvertToChatData(chat);
+    }
+
+    private async Task<ChatData> SaveOrUpdateChat(long chatId, Action<TgBotChat> updateAction)
+    {
+        await using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
+        var repository = unitOfWork.CreateTgBotChatRepository();
         var chat = await repository.GetByChatId(chatId);
+
         if (chat is null)
         {
-            var newChat = new TgBotChat() {
-                ChatId = chatId, IsEnabled = true
+            chat = new TgBotChat()
+            {
+                ChatId = chatId,
             };
-            await repository.Add(newChat);
+            await repository.Add(chat);
         }
-        else
-        {
-            chat.IsEnabled = isEnebled;
-        }
-
+ 
+        updateAction(chat);
         await unitOfWork.SaveChangesAsync();
+        return ConvertToChatData(chat);
     }
 
-    private async Task SaveChatIfNoCached(long chatId)
+    private async Task<ChatData> SaveNewChatIfNoCached(long chatId)
     {
-        var isNew = cachedChatIds.TryAdd(chatId, default);
-        if (isNew)
+        var isInCache = cachedChats.TryGetValue(chatId, out var chatData);
+        if (!isInCache)
         {
             logger.LogInformation($"Save new chat id {chatId}");
-            await SaveChat(chatId, true);
+            chatData = await SaveOrUpdateChat(chatId, (chat) =>
+            {
+                chat.SetDefault();
+                chat.IsEnabled = true;
+            });
+
+            AddOrUpdateCachedChat(chatData);
         }
+
+        return chatData!;
     }
+
+    private void AddOrUpdateCachedChat(ChatData chatData) =>
+        cachedChats.AddOrUpdate(chatData.ChatId, chatData,
+            (chatId, theChatData) => chatData);
 
     private Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
     {

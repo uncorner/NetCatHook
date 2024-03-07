@@ -4,11 +4,11 @@ using NetCatHook.Scraper.App.Repository;
 
 namespace NetCatHook.Scraper.Infrastructure.Repository;
 
-class TgBotChatRepository : ITgBotChatRepository
+class DbTgBotChatRepository : ITgBotChatRepository
 {
     private readonly ApplicationDbContext dbContext;
 
-    public TgBotChatRepository(ApplicationDbContext dbContext)
+    public DbTgBotChatRepository(ApplicationDbContext dbContext)
     {
         this.dbContext = dbContext;
     }

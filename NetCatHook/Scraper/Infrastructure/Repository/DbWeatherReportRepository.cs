@@ -4,11 +4,11 @@ using NetCatHook.Scraper.App.Repository;
 
 namespace NetCatHook.Scraper.Infrastructure.Repository;
 
-class WeatherReportRepository : IWeatherReportRepository
+class DbWeatherReportRepository : IWeatherReportRepository
 {
     private readonly ApplicationDbContext dbContext;
 
-    public WeatherReportRepository(ApplicationDbContext dbContext)
+    public DbWeatherReportRepository(ApplicationDbContext dbContext)
     {
         this.dbContext = dbContext;
     }

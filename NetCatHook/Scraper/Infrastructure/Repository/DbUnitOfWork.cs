@@ -2,11 +2,11 @@
 
 using NetCatHook.Scraper.App.Repository;
 
-sealed class UnitOfWork : IUnitOfWork
+sealed class DbUnitOfWork : IUnitOfWork
 {
     private readonly ApplicationDbContext dbContext;
 
-    public UnitOfWork(ApplicationDbContext dbContext)
+    public DbUnitOfWork(ApplicationDbContext dbContext)
     {
         this.dbContext = dbContext;
     }
@@ -14,10 +14,10 @@ sealed class UnitOfWork : IUnitOfWork
     #region Repositories
 
     public ITgBotChatRepository CreateTgBotChatRepository() =>
-        new TgBotChatRepository(dbContext);
+        new DbTgBotChatRepository(dbContext);
 
     public IWeatherReportRepository CreateWeatherReportRepository() =>
-        new WeatherReportRepository(dbContext);
+        new DbWeatherReportRepository(dbContext);
 
     #endregion
 

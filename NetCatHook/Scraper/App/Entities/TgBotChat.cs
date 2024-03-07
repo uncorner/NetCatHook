@@ -11,5 +11,13 @@ class TgBotChat
 
     public bool IsEnabled { get; set; }
 
+    public bool IsNotifying { get; set; }
+
+    public void SetDefault()
+    {
+        IsEnabled = false;
+        IsNotifying = false;
+    }
+
 }
 

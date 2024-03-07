@@ -3,15 +3,15 @@ using NetCatHook.Scraper.App.Repository;
 
 namespace NetCatHook.Scraper.Infrastructure.Repository;
 
-class UnitOfWorkFactory : IUnitOfWorkFactory
+class DbUnitOfWorkFactory : IUnitOfWorkFactory
 {
     private readonly IDbContextFactory<ApplicationDbContext> dbContextFactory;
 
-    public UnitOfWorkFactory(IDbContextFactory<ApplicationDbContext> dbContextFactory)
+    public DbUnitOfWorkFactory(IDbContextFactory<ApplicationDbContext> dbContextFactory)
     {
         this.dbContextFactory = dbContextFactory;
     }
 
-    public IUnitOfWork CreateUnitOfWork() => new UnitOfWork(dbContextFactory.CreateDbContext());
+    public IUnitOfWork CreateUnitOfWork() => new DbUnitOfWork(dbContextFactory.CreateDbContext());
 
 }
