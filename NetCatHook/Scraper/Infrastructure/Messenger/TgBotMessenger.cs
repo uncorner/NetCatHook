@@ -94,7 +94,6 @@ class TgBotMessenger : IMessenger
     private static ChatData ConvertToChatData(TgBotChat chat) => new ChatData
     {
         ChatId = chat.ChatId,
-        //IsEnabled = chat.IsEnabled,
         IsNotifying = chat.IsNotifying
     };
 
@@ -312,45 +311,6 @@ class TgBotMessenger : IMessenger
             ResizeKeyboard = true
         };
     }
-
-    //private async Task UpdateChat(long chatId, Action<TgBotChat> updateAction)
-    //{
-    //    await using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
-    //    var repository = unitOfWork.CreateTgBotChatRepository();
-    //    var chat = await repository.GetByChatId(chatId);
-    //        //?? throw new Exception($"Tg chat with id {chatId} not found");
-
-    //    if (chat is null)
-    //    {
-    //        return;
-    //    }
-    //    updateAction(chat);
-    //    await unitOfWork.SaveChangesAsync();
-    //}
-
-    //private async Task<TgBotChat> SaveNewChatOrUpdateEnabled(long chatId)
-    //{
-    //    TgBotChat? chat;
-    //    await using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
-    //    {
-    //        var repository = unitOfWork.CreateTgBotChatRepository();
-
-    //        chat = await repository.GetByChatId(chatId);
-    //        if (chat is null)
-    //        {
-    //            chat = new TgBotChat()
-    //            {
-    //                ChatId = chatId
-    //            };
-    //            await repository.Add(chat);
-    //        }
-
-    //        chat.IsEnabled = true;
-    //        await unitOfWork.SaveChangesAsync();
-    //    }
-
-    //    return chat;
-    //}
 
     private async Task<ChatData> UpdateChat(long chatId, Action<TgBotChat> updateAction)
     {
