@@ -24,14 +24,19 @@ class TgBotMessenger : IMessenger
     private bool disposed = false;
     private ConcurrentDictionary<long, ChatData> cachedChats = new();
     private IWeatherInformer? weatherInformer = null!;
-    private const string NowCommandMessageText = "Узнать погоду";
-
+ 
     private static class Commands
     {
         public const string Start = "/start";
         public const string NowWeather = "/now";
         public const string NotificationsOn = "/notificationson";
         public const string NotificationsOff = "/notificationsoff";
+    }
+
+    private static class TextCommands
+    {
+        public const string NowWeather = "Узнать погоду";
+        public const string OptionsList = "Показать опции";
     }
 
     private static class InlineButtonDatas
@@ -222,8 +227,11 @@ class TgBotMessenger : IMessenger
                         case Commands.Start:
                             await HandleStartCommand(message, cancellationToken);
                             break;
-                        case Commands.NowWeather or NowCommandMessageText:
+                        case Commands.NowWeather or TextCommands.NowWeather:
                             await HandleNowCommand(message, cancellationToken);
+                            break;
+                        case TextCommands.OptionsList:
+                            await HandleOptionsList(message, cancellationToken, chatData);
                             break;
                         case Commands.NotificationsOn:
                             await HandleNotifications(message, cancellationToken, true);
@@ -232,7 +240,7 @@ class TgBotMessenger : IMessenger
                             await HandleNotifications(message, cancellationToken, false);
                             break;
                         default:
-                            await HandleArbitraryMessage(message, cancellationToken, chatData);
+                            await HandleOptionsList(message, cancellationToken, chatData);
                             break;
                     }
 
@@ -302,10 +310,10 @@ class TgBotMessenger : IMessenger
             chatId: message.Chat.Id,
             text: isNotifying ? "Включены уведомления о погоде" : "Отключены уведомления о погоде",
             cancellationToken: cancellationToken,
-            replyMarkup: GetKeyboardNowCommand());
+            replyMarkup: GetReplyKeyboard());
     }
 
-    private async Task HandleArbitraryMessage(Message message, CancellationToken cancellationToken, ChatData chatData)
+    private async Task HandleOptionsList(Message message, CancellationToken cancellationToken, ChatData chatData)
     {
         var notificationsButton = 
             InlineKeyboardButton.WithCallbackData("Активировать уведомления", InlineButtonDatas.NotificationsOn);
@@ -364,27 +372,31 @@ class TgBotMessenger : IMessenger
                 chatId: message.Chat.Id,
                 text: weatherSummary,
                 cancellationToken: cancellationToken,
-                replyMarkup: GetKeyboardNowCommand());
+                replyMarkup: GetReplyKeyboard());
     }
 
     private async Task HandleStartCommand(Message message, CancellationToken cancellationToken)
     {
         var userName = GetResultUserName(message.From);
         var helloStr = $"Здравствуйте, {userName}\n{StartCommandMessage}";
-        _ = await botClient!.SendTextMessageAsync(
+        await botClient!.SendTextMessageAsync(
             chatId: message.Chat.Id,
             text: helloStr,
             cancellationToken: cancellationToken,
-            replyMarkup: GetKeyboardNowCommand());
+            replyMarkup: GetReplyKeyboard());
     }
 
-    private static ReplyKeyboardMarkup GetKeyboardNowCommand()
+    private static ReplyKeyboardMarkup GetReplyKeyboard()
     {
-        return new ReplyKeyboardMarkup(
+        var buttons = new KeyboardButton[][] {
             new KeyboardButton[]
             {
-                new KeyboardButton(NowCommandMessageText)
-            })
+                new KeyboardButton(TextCommands.NowWeather),
+                new KeyboardButton(TextCommands.OptionsList)
+            },
+        };
+
+        return new ReplyKeyboardMarkup(buttons)
         {
             ResizeKeyboard = true
         };
