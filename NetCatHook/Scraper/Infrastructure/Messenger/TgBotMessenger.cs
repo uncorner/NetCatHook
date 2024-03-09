@@ -24,8 +24,22 @@ class TgBotMessenger : IMessenger
     private bool disposed = false;
     private ConcurrentDictionary<long, ChatData> cachedChats = new();
     private IWeatherInformer? weatherInformer = null!;
-    private const string NowCommandMessage = "Используйте команду /now чтобы узнать погоду на данный момент";
     private const string NowCommandMessageText = "Узнать погоду";
+
+    private static class Commands
+    {
+        public const string Start = "/start";
+        public const string NowWeather = "/now";
+        public const string NotificationsOn = "/notificationson";
+        public const string NotificationsOff = "/notificationsoff";
+    }
+
+    private static class InlineButtonDatas
+    {
+        public const string NowWeather = "now_weather";
+        public const string NotificationsOn = "notifications_on";
+        public const string NotificationsOff = "notifications_off";
+    }
 
     public TgBotMessenger(ILogger<TgBotMessenger> logger,
         IConfiguration configuration,
@@ -37,6 +51,8 @@ class TgBotMessenger : IMessenger
         this.unitOfWorkFactory = unitOfWorkFactory;
         this.httpClientFactory = httpClientFactory;
     }
+
+    private static string StartCommandMessage => $"Используйте команду {Commands.NowWeather} чтобы узнать погоду на данный момент.\nАктивируйте уведомления о погоде командой {Commands.NotificationsOn}";
 
     public async Task Initialize(CancellationToken cancellationToken)
     {
@@ -54,7 +70,7 @@ class TgBotMessenger : IMessenger
         {
             AllowedUpdates = new[] {
                 UpdateType.Message,
-                //UpdateType.CallbackQuery // Inline кнопки
+                UpdateType.CallbackQuery,
                 UpdateType.MyChatMember,
             },
             // if true do not process updates when offline
@@ -169,67 +185,108 @@ class TgBotMessenger : IMessenger
     {
         try
         {
-            switch(update.Type)
-            {
-                case UpdateType.Message:
-                    {
-                        logger.LogInformation($"UpdateType.Message, Chat id {update.Message?.Chat.Id}, Text '{update.Message?.Text}'");
-
-                        if (update.Message is not { } message)
-                        {
-                            return;
-                        }
-                        if (string.IsNullOrWhiteSpace(message.Text))
-                        {
-                            return;
-                        }
-
-                        _ = await SaveNewChatIfNoCached(message.Chat.Id);
-
-                        var messageText = message.Text.Trim();
-                        if (messageText.StartsWith('/'))
-                        {
-                            messageText = messageText.ToLowerInvariant();
-                        }
-
-                        switch (messageText)
-                        {
-                            case "/start":
-                                await HandleStartCommand(message, cancellationToken);
-                                break;
-                            case "/now" or NowCommandMessageText:
-                                await HandleNowCommand(message, cancellationToken);
-                                break;
-                            case "/notificationson":
-                                await HandleNotifications(message, cancellationToken, true);
-                                break;
-                            case "/notificationsoff":
-                                await HandleNotifications(message, cancellationToken, false);
-                                break;
-                            default:
-                                await HandleOtherMessage(message, cancellationToken);
-                                break;
-                        }
-
-                        break;
-                    }
-                case UpdateType.MyChatMember:
-                    {
-                        if (update.MyChatMember is not { } cmUpdated)
-                        {
-                            return;
-                        }
-
-                        await HandleMyChatMemberUpdated(cmUpdated);
-                        break;
-                    }
-                default:
-                    logger.LogWarning($"Unhandled Update type: {update.Type}");
-                    break;
-            }
+            await DoHandleUpdateAsync(botClient, update, cancellationToken);
         }
         catch (Exception ex) {
             logger.LogError($"Error in {nameof(HandleUpdateAsync)}: {ex}");
+        }
+    }
+
+    private async Task DoHandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+    {
+        switch (update.Type)
+        {
+            case UpdateType.Message:
+                {
+                    logger.LogInformation($"UpdateType.Message, Chat id {update.Message?.Chat.Id}, Text '{update.Message?.Text}'");
+
+                    if (update.Message is not { } message)
+                    {
+                        return;
+                    }
+                    if (string.IsNullOrWhiteSpace(message.Text))
+                    {
+                        return;
+                    }
+
+                    var chatData = await SaveNewChatIfNoCached(message.Chat.Id);
+
+                    var messageText = message.Text.Trim();
+                    if (messageText.StartsWith('/'))
+                    {
+                        messageText = messageText.ToLowerInvariant();
+                    }
+
+                    switch (messageText)
+                    {
+                        case Commands.Start:
+                            await HandleStartCommand(message, cancellationToken);
+                            break;
+                        case Commands.NowWeather or NowCommandMessageText:
+                            await HandleNowCommand(message, cancellationToken);
+                            break;
+                        case Commands.NotificationsOn:
+                            await HandleNotifications(message, cancellationToken, true);
+                            break;
+                        case Commands.NotificationsOff:
+                            await HandleNotifications(message, cancellationToken, false);
+                            break;
+                        default:
+                            await HandleArbitraryMessage(message, cancellationToken, chatData);
+                            break;
+                    }
+
+                    break;
+                }
+            case UpdateType.CallbackQuery:
+                {
+                    logger.LogInformation($"UpdateType.CallbackQuery, Chat id {update.CallbackQuery?.Message?.Chat.Id}, Data '{update.CallbackQuery?.Data}'");
+
+                    var callbackQuery = update.CallbackQuery;
+                    if (callbackQuery?.Message is not { } message)
+                    {
+                        return;
+                    }
+
+                    await SaveNewChatIfNoCached(message.Chat.Id);
+
+                    switch (callbackQuery.Data)
+                    {
+                        case InlineButtonDatas.NowWeather:
+                            {
+                                await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
+                                await HandleNowCommand(message, cancellationToken);
+                                break;
+                            }
+                        case InlineButtonDatas.NotificationsOn:
+                            {
+                                await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
+                                await HandleNotifications(message, cancellationToken, true);
+                                break;
+                            }
+                        case InlineButtonDatas.NotificationsOff:
+                            {
+                                await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
+                                await HandleNotifications(message, cancellationToken, false);
+                                break;
+                            }
+                    }
+
+                    break;
+                }
+            case UpdateType.MyChatMember:
+                {
+                    if (update.MyChatMember is not { } cmUpdated)
+                    {
+                        return;
+                    }
+
+                    await HandleMyChatMemberUpdated(cmUpdated);
+                    break;
+                }
+            default:
+                logger.LogWarning($"Unhandled Update type: {update.Type}");
+                break;
         }
     }
 
@@ -248,13 +305,34 @@ class TgBotMessenger : IMessenger
             replyMarkup: GetKeyboardNowCommand());
     }
 
-    private async Task HandleOtherMessage(Message message, CancellationToken cancellationToken)
+    private async Task HandleArbitraryMessage(Message message, CancellationToken cancellationToken, ChatData chatData)
     {
-        _ = await botClient!.SendTextMessageAsync(
+        var notificationsButton = 
+            InlineKeyboardButton.WithCallbackData("Активировать уведомления", InlineButtonDatas.NotificationsOn);
+        if (chatData.IsNotifying)
+        {
+            notificationsButton =
+                InlineKeyboardButton.WithCallbackData("Деактивировать уведомления", InlineButtonDatas.NotificationsOff);
+        }
+
+        var inlineKeyboard = new InlineKeyboardMarkup(
+            new List<InlineKeyboardButton[]>()
+            {
+                new InlineKeyboardButton[]
+                {
+                    InlineKeyboardButton.WithCallbackData("Узнать текущую погоду", InlineButtonDatas.NowWeather),
+                },
+                new InlineKeyboardButton[]
+                {
+                    notificationsButton
+                },
+            });
+
+        await botClient!.SendTextMessageAsync(
             chatId: message.Chat.Id,
-            text: NowCommandMessage,
+            text: "Выберите действие:",
             cancellationToken: cancellationToken,
-            replyMarkup: GetKeyboardNowCommand());
+            replyMarkup: inlineKeyboard);
     }
 
     private async Task HandleMyChatMemberUpdated(ChatMemberUpdated cmUpdated)
@@ -282,7 +360,7 @@ class TgBotMessenger : IMessenger
     private async Task HandleNowCommand(Message message, CancellationToken cancellationToken)
     {
         var weatherSummary = weatherInformer!.GetWeatherSummary();
-        _ = await botClient!.SendTextMessageAsync(
+        await botClient!.SendTextMessageAsync(
                 chatId: message.Chat.Id,
                 text: weatherSummary,
                 cancellationToken: cancellationToken,
@@ -292,7 +370,7 @@ class TgBotMessenger : IMessenger
     private async Task HandleStartCommand(Message message, CancellationToken cancellationToken)
     {
         var userName = GetResultUserName(message.From);
-        var helloStr = $"Здравствуйте, {userName}\n{NowCommandMessage}";
+        var helloStr = $"Здравствуйте, {userName}\n{StartCommandMessage}";
         _ = await botClient!.SendTextMessageAsync(
             chatId: message.Chat.Id,
             text: helloStr,
