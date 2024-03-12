@@ -22,9 +22,11 @@ static class ConfigurationExtensions
         return config["WeatherParsingUrl"]!;
     }
 
-    public static bool GetFakeHtmlDownloaderEnabled(this IConfiguration config)
+    public static HtmlDownloaderTypes GetHtmlDownloaderType(this IConfiguration config)
     {
-        return config.GetValue<bool>("FakeHtmlDownloaderEnabled");
+        var value = config.GetValue<string>("HtmlDownloaderType");
+        Enum.TryParse<HtmlDownloaderTypes>(value, out var downloaderType);
+        return downloaderType;
     }
 
     public static bool GetLoggerNotificationsEnabled(this IConfiguration config)

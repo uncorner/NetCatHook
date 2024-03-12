@@ -44,14 +44,19 @@ static class ServiceCollectionExtensions
 
     private static void AddHtmlSource(IServiceCollection services, ConfigurationManager config)
     {
-        if (config.GetFakeHtmlDownloaderEnabled())
+        var downloaderType = config.GetHtmlDownloaderType();
+        switch(downloaderType)
         {
-            services.AddTransient<IHtmlSource,
-                FakeHtmlDownloader>((services) => FakeHtmlDownloaderFactory.FromFile(services));
-        }
-        else
-        {
-            services.AddTransient<IHtmlSource, NativeHtmlDownloader>();
+            case HtmlDownloaderTypes.Native:
+                services.AddTransient<IHtmlSource, NativeHtmlDownloader>();
+                break;
+            case HtmlDownloaderTypes.Browser:
+                services.AddTransient<IHtmlSource, BrowserHtmlDownloader>();
+                break;
+            default:
+                services.AddTransient<IHtmlSource,
+                    FakeHtmlDownloader>((services) => FakeHtmlDownloaderFactory.FromFile(services));
+                break;
         }
     }
 
