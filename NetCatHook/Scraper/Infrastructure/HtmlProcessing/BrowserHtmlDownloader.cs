@@ -14,18 +14,24 @@ class BrowserHtmlDownloader : IHtmlSource
 
         var options = new LaunchOptions()
         {
-            ExecutablePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe",
+ #if OS_WINDOWS
+             ExecutablePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe",
+ #else
+             ExecutablePath = @"/usr/bin/google-chrome",
+ #endif
             Headless = true, // browser invisible mode
             SlowMo = SlowMo,
-            Timeout = 60000
+            Timeout = 60000*3,
         };
         await using var browser = await Puppeteer.LaunchAsync(options);
         await using var page = await browser.NewPageAsync();
 
         await page.GoToAsync(url, new NavigationOptions
         {
-            WaitUntil = new[] { WaitUntilNavigation.Load },
-            Timeout = 0
+            // WaitUntil = new[] { WaitUntilNavigation.Load },
+            // Timeout = 0
+            WaitUntil = [ WaitUntilNavigation.DOMContentLoaded ],
+            Timeout = 60000*5
         });
         var content = await page.GetContentAsync();
 

@@ -1,7 +1,7 @@
 ﻿using NetCatHook.Scraper.App;
 using Xunit.Abstractions;
 
-namespace NetCatHook.ScraperTests.App;
+namespace NetCatHook.ScraperTests.Infrastructure;
 
 public class WeatherEvaluatorTest
 {
