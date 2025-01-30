@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using NetCatHook.Scraper.App;
 using NetCatHook.Scraper.App.Entities;
 

@@ -1,4 +1,5 @@
-﻿using NetCatHook.Scraper.App;
+﻿using Microsoft.Extensions.Logging;
+using NetCatHook.Scraper.App;
 using NetCatHook.Scraper.App.Messenger;
 
 namespace NetCatHook.Scraper.Infrastructure.Messenger;

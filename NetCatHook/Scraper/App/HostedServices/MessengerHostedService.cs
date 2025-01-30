@@ -1,4 +1,7 @@
-﻿using NetCatHook.Scraper.App.Entities;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using NetCatHook.Scraper.App.Entities;
 using NetCatHook.Scraper.App.HtmlProcessing;
 using NetCatHook.Scraper.App.Messenger;
 using NetCatHook.Scraper.App.Repository;
@@ -37,6 +40,7 @@ class MessengerHostedService : IHostedService, IWeatherInformer
         this.messenger.SetWeatherInformer(this);
     }
 
+    // NOTE: void because be used with event
     private async void ProcessScheduler()
     {
         logger.LogInformation("Start building weather report");

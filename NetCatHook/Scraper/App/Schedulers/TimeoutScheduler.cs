@@ -1,4 +1,7 @@
-﻿namespace NetCatHook.Scraper.App.Schedulers;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+
+namespace NetCatHook.Scraper.App.Schedulers;
 
 class TimeoutScheduler : IWorkScheduler
 {

@@ -1,4 +1,7 @@
-﻿namespace NetCatHook.Scraper.Infrastructure.HtmlProcessing;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
+namespace NetCatHook.Scraper.Infrastructure.HtmlProcessing;
 
 static class FakeHtmlDownloaderFactory
 {

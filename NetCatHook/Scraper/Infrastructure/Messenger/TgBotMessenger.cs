@@ -9,6 +9,8 @@ using Telegram.Bot;
 using NetCatHook.Scraper.App;
 using NetCatHook.Scraper.App.Messenger;
 using System.Text;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace NetCatHook.Scraper.Infrastructure.Messenger;

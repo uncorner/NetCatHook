@@ -1,5 +1,6 @@
-﻿using NetCatHook.Scraper.App;
-using NetCatHook.Scraper.App.HostedServices;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using NetCatHook.Scraper.App;
 using NetCatHook.Scraper.App.HtmlProcessing;
 using NetCatHook.Scraper.App.Messenger;
 using NetCatHook.Scraper.App.Repository;
@@ -27,7 +28,7 @@ static class ServiceCollectionExtensions
         services.AddTransient<IWorkScheduler, RandomTimeoutScheduler>();
         AddMessenger(services, config);
 
-        services.AddHostedService<MessengerHostedService>();
+        //services.AddHostedService<MessengerHostedService>();
     }
 
     private static void AddMessenger(IServiceCollection services, ConfigurationManager config)

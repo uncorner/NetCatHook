@@ -1,4 +1,5 @@
-﻿using NetCatHook.Scraper.App.HtmlProcessing;
+﻿using Microsoft.Extensions.Logging;
+using NetCatHook.Scraper.App.HtmlProcessing;
 
 namespace NetCatHook.Scraper.Infrastructure.HtmlProcessing;
 

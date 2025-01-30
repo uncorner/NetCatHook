@@ -1,4 +1,6 @@
-﻿namespace NetCatHook.Scraper.App;
+﻿using Microsoft.Extensions.Configuration;
+
+namespace NetCatHook.Scraper.App;
 
 static class ConfigurationExtensions
 {

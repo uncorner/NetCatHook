@@ -1,28 +1,31 @@
-﻿using NetCatHook.Scraper.Infrastructure;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using NetCatHook.Scraper.App.HostedServices;
+using NetCatHook.Scraper.Infrastructure;
 
-namespace NetCatHook.Scraper;
+//namespace NetCatHook.Scraper;
 
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        var builder = WebApplication.CreateBuilder(args);
+var builder = Host.CreateApplicationBuilder(args);
+builder.Services.AddCustomServices(builder.Configuration);
+builder.Services.AddHostedService<MessengerHostedService>();
 
-        // Add services to the container.
-        builder.Services.AddControllers();
-        builder.Services.AddCustomServices(builder.Configuration);
-        
-        var app = builder.Build();
+var host = builder.Build();
+host.Run();
 
-        // Configure the HTTP request pipeline.
+//var builder = WebApplication.CreateBuilder(args);
 
-        app.UseHttpsRedirection();
+// Add services to the container.
+//builder.Services.AddControllers();
+//builder.Services.AddCustomServices(builder.Configuration);
 
-        //app.UseAuthorization();
+//var app = builder.Build();
 
-        app.MapControllers();
-        
-        app.Run();
+// Configure the HTTP request pipeline.
 
-    }
-}
+//app.UseHttpsRedirection();
+
+//app.UseAuthorization();
+
+//app.MapControllers();
+
+//app.Run();
