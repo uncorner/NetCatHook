@@ -19,6 +19,7 @@ static class ServiceCollectionExtensions
         services.AddHttpClient();
 
         services.AddTransient<IUnitOfWorkFactory, DbUnitOfWorkFactory>();
+        //NOTE: for testing
         //services.AddTransient<IUnitOfWorkFactory, MemoryUnitOfWorkFactory>();
         services.AddDbContextFactory<ApplicationDbContext>();
 
@@ -26,12 +27,10 @@ static class ServiceCollectionExtensions
 
         services.AddTransient<IWeatherHtmlParser, WeatherHtmlParser>();
         services.AddTransient<IWorkScheduler, RandomTimeoutScheduler>();
-        AddMessenger(services, config);
-
-        //services.AddHostedService<MessengerHostedService>();
+        AddMessengerByConfig(services, config);
     }
 
-    private static void AddMessenger(IServiceCollection services, ConfigurationManager config)
+    private static void AddMessengerByConfig(IServiceCollection services, ConfigurationManager config)
     {
         if (config.GetLoggerNotificationsEnabled())
         {
