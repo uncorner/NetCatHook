@@ -3,15 +3,8 @@ using Xunit.Abstractions;
 
 namespace NetCatHook.ScraperTests.Infrastructure;
 
-public class WeatherEvaluatorTest
+public class WeatherEvaluatorTest(ITestOutputHelper output)
 {
-    private readonly ITestOutputHelper output;
-
-    public WeatherEvaluatorTest(ITestOutputHelper output)
-    {
-        this.output = output;
-    }
-
     [Fact]
     public void TestEvaluate()
     {

@@ -3,15 +3,9 @@ using Xunit.Abstractions;
 
 namespace NetCatHook.ScraperTests.Infrastructure.HtmlProcessing;
 
-public class DownloadingWeatherHtmlParserTest
+public class DownloadingWeatherHtmlParserTest(ITestOutputHelper output)
 {
-    public const string TargetUrl = "https://www.gismeteo.ru/weather-moscow-4368/now/";
-    private readonly ITestOutputHelper output;
-
-    public DownloadingWeatherHtmlParserTest(ITestOutputHelper output)
-    {
-        this.output = output;
-    }
+    private const string TargetUrl = "https://www.gi" + "smeteo.ru/weather-moscow-4368/now/";
 
     [Fact]
     public async Task TestDownloadAndParse()

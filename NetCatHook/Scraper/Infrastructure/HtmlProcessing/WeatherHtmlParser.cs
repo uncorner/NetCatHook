@@ -6,25 +6,31 @@ namespace NetCatHook.Scraper.Infrastructure.HtmlProcessing;
 
 class WeatherHtmlParser : IWeatherHtmlParser
 {
-    private const string pattern =
-        @"M\.state\.weather\.cw = \{"
+    private const string Pattern =
+        @"window\.M\.state = \{"
         + $@".+""{Grp.description}"":\[(?<{Grp.description}>[^\]]+)\]"
-        + $@".+""{Grp.temperatureAir}"":\[(?<{Grp.temperatureAir}>[^\]]+)\]"
         + $@".+""{Grp.humidity}"":\[(?<{Grp.humidity}>[^\]]+)\]"
         + $@".+""{Grp.pressure}"":\[(?<{Grp.pressure}>[^\]]+)\]"
+        + $@".+""{Grp.temperatureAir}"":\[(?<{Grp.temperatureAir}>[^\]]+)\]"
         + $@".+""{Grp.windDirection}"":\[(?<{Grp.windDirection}>[^\]]+)\]"
         + $@".+""{Grp.windSpeed}"":\[(?<{Grp.windSpeed}>[^\]]+)\]"
-        + $@".+""{Grp.windGust}"":\[(?<{Grp.windGust}>[^\]]+)\]"
-        + @".*\}";
-
+        + $@".+""{Grp.windGust}"":\[(?<{Grp.windGust}>[^\]]+)\]";
+    
     private static class Grp
     {
+        // ReSharper disable once InconsistentNaming
         public const string description = nameof(description);
+        // ReSharper disable once InconsistentNaming
         public const string temperatureAir = nameof(temperatureAir);
+        // ReSharper disable once InconsistentNaming
         public const string humidity = nameof(humidity);
+        // ReSharper disable once InconsistentNaming
         public const string pressure = nameof(pressure);
+        // ReSharper disable once InconsistentNaming
         public const string windDirection = nameof(windDirection);
+        // ReSharper disable once InconsistentNaming
         public const string windSpeed = nameof(windSpeed);
+        // ReSharper disable once InconsistentNaming
         public const string windGust = nameof(windGust);
     }
 
@@ -33,9 +39,9 @@ class WeatherHtmlParser : IWeatherHtmlParser
         return await Task.Run(() => TryParse(html));
     }
 
-    private WeatherData TryParse(string html)
+    private static WeatherData TryParse(string html)
     {
-        var regex = new Regex(pattern, RegexOptions.Multiline
+        var regex = new Regex(Pattern, RegexOptions.Multiline
             | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
         var matches = regex.Matches(html);
