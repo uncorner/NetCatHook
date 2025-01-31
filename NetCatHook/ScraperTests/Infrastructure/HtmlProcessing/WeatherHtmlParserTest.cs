@@ -29,6 +29,11 @@ public partial class WeatherHtmlParserTest(ITestOutputHelper output)
 
         Assert.NotNull(result.WindGust);
         Assert.Equal(3, result.WindGust);
+        
+        Assert.NotNull(result.City);
+        Assert.Equal("Москва", result.City);
+        Assert.NotNull(result.InCity);
+        Assert.Equal("в Москве", result.InCity);
 
         output.WriteLine(result.ToString());
     }
@@ -46,6 +51,8 @@ public partial class WeatherHtmlParserTest(ITestOutputHelper output)
         Assert.NotNull(result.WindDirection);
         Assert.NotNull(result.WindSpeed);
         Assert.Null(result.WindGust);
+        Assert.NotNull(result.City);
+        Assert.NotNull(result.InCity);
         
         output.WriteLine(result.ToString());
     }

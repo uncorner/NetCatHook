@@ -9,8 +9,16 @@ static class WeatherSummaryBuilder
     public static string Build(WeatherReport report)
     {
         StringBuilder str = new();
-        str.AppendFormat("Погода на {0:dd.MM.yyyy H:mm} Мск:",
-            report.CreatedAtLocal);
+        if (report.InCity is not null)
+        {
+            str.AppendFormat("Погода {0} на {1:dd.MM.yyyy H:mm}:",
+                report.InCity,  report.CreatedAtLocal);
+        }
+        else
+        {
+            str.AppendFormat("Погода на {0:dd.MM.yyyy H:mm}:",
+                report.CreatedAtLocal);
+        }
         str.AppendLine();
 
         if (report.Description is not null)

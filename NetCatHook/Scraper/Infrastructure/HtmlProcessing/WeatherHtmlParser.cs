@@ -8,6 +8,7 @@ class WeatherHtmlParser : IWeatherHtmlParser
 {
     private const string Pattern =
         @"window\.M\.state = \{"
+        + $@".+\{{""city"":\{{""{Grp.name}"":(?<{Grp.name}>[^,]+),""{Grp.nameP}"":(?<{Grp.nameP}>[^,]+),""nameR"""
         + $@".+""{Grp.description}"":\[(?<{Grp.description}>[^\]]+)\]"
         + $@".+""{Grp.humidity}"":\[(?<{Grp.humidity}>[^\]]+)\]"
         + $@".+""{Grp.pressure}"":\[(?<{Grp.pressure}>[^\]]+)\]"
@@ -32,6 +33,10 @@ class WeatherHtmlParser : IWeatherHtmlParser
         public const string windSpeed = nameof(windSpeed);
         // ReSharper disable once InconsistentNaming
         public const string windGust = nameof(windGust);
+        // ReSharper disable once InconsistentNaming
+        public const string name = nameof(name);
+        // ReSharper disable once InconsistentNaming
+        public const string nameP = nameof(nameP);
     }
 
     public async Task<WeatherData> TryParseAsync(string html)
@@ -70,8 +75,14 @@ class WeatherHtmlParser : IWeatherHtmlParser
             strValue = match.Groups[Grp.windGust].Value;
             var windGust = ParseInt(strValue);
 
+            strValue = match.Groups[Grp.name].Value;
+            var city = ParseString(strValue);
+            strValue = match.Groups[Grp.nameP].Value;
+            var inCity = ParseString(strValue);
+
             return new WeatherData(true, temperatureAir, description,
-                humidity, pressure, windDirection, windSpeed, windGust);
+                humidity, pressure, windDirection, windSpeed,
+                windGust, city, inCity);
         }
 
         return new WeatherData(false);

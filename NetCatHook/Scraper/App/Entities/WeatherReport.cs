@@ -33,6 +33,9 @@ class WeatherReport
     public int? WindSpeed { get; set; }
 
     public int? WindGust { get; set; }
+    
+    [NotMapped]
+    public string? InCity { get; set; }
 
     public void SetWeatherData(WeatherData data)
     {
@@ -43,6 +46,7 @@ class WeatherReport
         WindDirection = data.WindDirection;
         WindSpeed = data.WindSpeed;
         WindGust = data.WindGust;
+        InCity = data.InCity;
     }
 
     internal static WeatherReport CreateExpired()

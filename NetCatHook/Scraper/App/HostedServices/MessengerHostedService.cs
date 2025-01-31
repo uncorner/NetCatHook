@@ -149,7 +149,7 @@ class MessengerHostedService : IHostedService, IWeatherInformer
         var timeoutMinutes = config.GetParsingSchedulerTimeoutInMinutes();
         var expiringTimeUtc = DateTime.UtcNow.AddMinutes(-timeoutMinutes * 2);
 
-        var summary = "Нет данных о погоде";
+        var summary = "Пока нет данных о погоде";
         if (report.CreatedAt >= expiringTimeUtc)
         {
             summary = WeatherSummaryBuilder.Build(report);
