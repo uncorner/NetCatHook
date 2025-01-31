@@ -15,18 +15,20 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace NetCatHook.Scraper.Infrastructure.Messenger;
 
-class TgBotMessenger : IMessenger
+class TgBotMessenger(
+    ILogger<TgBotMessenger> logger,
+    IConfiguration configuration,
+    IUnitOfWorkFactory unitOfWorkFactory,
+    IHttpClientFactory httpClientFactory)
+    : IMessenger
 {
-    private readonly ILogger<TgBotMessenger> logger;
-    private readonly IConfiguration configuration;
-    private readonly IUnitOfWorkFactory unitOfWorkFactory;
-    private readonly IHttpClientFactory httpClientFactory;
     private ITelegramBotClient? botClient;
     private readonly CancellationTokenSource botCts = new();
-    private bool disposed = false;
+    private bool disposed;
     private ConcurrentDictionary<long, ChatData> cachedChats = new();
-    private IWeatherInformer? weatherInformer = null!;
+    private IWeatherInformer? weatherInformer;
  
+    #region TG Constants
     private static class Commands
     {
         public const string Start = "/start";
@@ -47,18 +49,8 @@ class TgBotMessenger : IMessenger
         public const string NotificationsOn = "notifications_on";
         public const string NotificationsOff = "notifications_off";
     }
-
-    public TgBotMessenger(ILogger<TgBotMessenger> logger,
-        IConfiguration configuration,
-        IUnitOfWorkFactory unitOfWorkFactory,
-        IHttpClientFactory httpClientFactory)
-    {
-        this.logger = logger;
-        this.configuration = configuration;
-        this.unitOfWorkFactory = unitOfWorkFactory;
-        this.httpClientFactory = httpClientFactory;
-    }
-
+    #endregion
+    
     private static string StartCommandMessage => $"Используйте команду {Commands.NowWeather} чтобы узнать погоду на данный момент.\nАктивируйте уведомления о погоде командой {Commands.NotificationsOn}";
 
     public async Task Initialize(CancellationToken cancellationToken)
