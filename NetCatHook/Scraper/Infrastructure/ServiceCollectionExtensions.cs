@@ -6,8 +6,8 @@ using NetCatHook.Scraper.Application.Messenger;
 using NetCatHook.Scraper.Application.Repository;
 using NetCatHook.Scraper.Application.Schedulers;
 using NetCatHook.Scraper.Infrastructure.HtmlProcessing;
-using NetCatHook.Scraper.Infrastructure.Messenger;
 using NetCatHook.Scraper.Infrastructure.Repository;
+using NetCatHook.Scraper.Presentation.Messenger;
 
 namespace NetCatHook.Scraper.Infrastructure;
 

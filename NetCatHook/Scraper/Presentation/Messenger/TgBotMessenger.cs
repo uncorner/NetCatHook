@@ -1,9 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using Telegram.Bot.Exceptions;
-using Telegram.Bot.Polling;
-using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types;
-using Telegram.Bot;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -11,9 +6,14 @@ using NetCatHook.Scraper.Application;
 using NetCatHook.Scraper.Application.Messenger;
 using NetCatHook.Scraper.Application.Repository;
 using NetCatHook.Scraper.Domain.Entities;
+using Telegram.Bot;
+using Telegram.Bot.Exceptions;
+using Telegram.Bot.Polling;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace NetCatHook.Scraper.Infrastructure.Messenger;
+namespace NetCatHook.Scraper.Presentation.Messenger;
 
 class TgBotMessenger(
     ILogger<TgBotMessenger> logger,

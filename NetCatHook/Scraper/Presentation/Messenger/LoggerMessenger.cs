@@ -2,7 +2,7 @@
 using NetCatHook.Scraper.Application;
 using NetCatHook.Scraper.Application.Messenger;
 
-namespace NetCatHook.Scraper.Infrastructure.Messenger;
+namespace NetCatHook.Scraper.Presentation.Messenger;
 
 class LoggerMessenger : IMessenger
 {
