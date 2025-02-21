@@ -1,4 +1,5 @@
 ﻿using NetCatHook.Scraper.Application;
+using NetCatHook.Scraper.Application.WeatherService;
 using Xunit.Abstractions;
 
 namespace NetCatHook.ScraperTests.Infrastructure;

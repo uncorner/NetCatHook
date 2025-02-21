@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using NetCatHook.Scraper.Application;
+using NetCatHook.Scraper.Application.WeatherService;
 
 namespace NetCatHook.Scraper.Domain.Entities;
 

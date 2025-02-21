@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using NetCatHook.Scraper.Application.WeatherService;
 
 namespace NetCatHook.Scraper.Application;
 
