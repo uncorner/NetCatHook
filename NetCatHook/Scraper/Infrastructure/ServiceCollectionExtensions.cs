@@ -6,6 +6,7 @@ using NetCatHook.Scraper.Application.Repository;
 using NetCatHook.Scraper.Application.Schedulers;
 using NetCatHook.Scraper.Application.WeatherService;
 using NetCatHook.Scraper.Infrastructure.Repository;
+using NetCatHook.Scraper.Infrastructure.Schedulers;
 using NetCatHook.Scraper.Infrastructure.WeatherService;
 using NetCatHook.Scraper.Presentation.Messenger;
 

@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using NetCatHook.Scraper.Application;
+using NetCatHook.Scraper.Application.Schedulers;
 
-namespace NetCatHook.Scraper.Application.Schedulers;
+namespace NetCatHook.Scraper.Infrastructure.Schedulers;
 
 class RandomTimeoutScheduler : IWorkScheduler
 {
