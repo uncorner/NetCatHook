@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using NetCatHook.Scraper.App.Repository;
+using NetCatHook.Scraper.Application.Repository;
 
 namespace NetCatHook.Scraper.Infrastructure.Repository;
 

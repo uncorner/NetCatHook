@@ -1,5 +1,5 @@
-﻿using NetCatHook.Scraper.App.Repository;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
+using NetCatHook.Scraper.Application.Repository;
 using NetCatHook.Scraper.Domain.Entities;
 
 namespace NetCatHook.Scraper.Infrastructure.Repository;

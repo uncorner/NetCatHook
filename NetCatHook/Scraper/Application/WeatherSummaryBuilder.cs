@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using NetCatHook.Scraper.Domain.Entities;
 
-namespace NetCatHook.Scraper.App;
+namespace NetCatHook.Scraper.Application;
 
 static class WeatherSummaryBuilder
 {

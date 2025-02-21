@@ -1,4 +1,4 @@
-﻿namespace NetCatHook.Scraper.App.Repository;
+﻿namespace NetCatHook.Scraper.Application.Repository;
 
 interface IUnitOfWork : IDisposable, IAsyncDisposable
 {

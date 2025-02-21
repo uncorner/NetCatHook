@@ -1,4 +1,4 @@
-﻿namespace NetCatHook.Scraper.App;
+﻿namespace NetCatHook.Scraper.Application;
 
 record WeatherData(bool Processed,
     int? TemperatureAir = null,

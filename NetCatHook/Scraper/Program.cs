@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using NetCatHook.Scraper.App.HostedServices;
+using NetCatHook.Scraper.Application.HostedServices;
 using NetCatHook.Scraper.Infrastructure;
 
 var builder = Host.CreateApplicationBuilder(args);

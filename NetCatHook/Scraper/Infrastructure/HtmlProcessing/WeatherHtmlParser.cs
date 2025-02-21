@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
-using NetCatHook.Scraper.App;
-using NetCatHook.Scraper.App.HtmlProcessing;
+using NetCatHook.Scraper.Application;
+using NetCatHook.Scraper.Application.HtmlProcessing;
 
 namespace NetCatHook.Scraper.Infrastructure.HtmlProcessing;
 

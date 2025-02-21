@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using NetCatHook.Scraper.App.HtmlProcessing;
+using NetCatHook.Scraper.Application.HtmlProcessing;
 
 namespace NetCatHook.Scraper.Infrastructure.HtmlProcessing;
 

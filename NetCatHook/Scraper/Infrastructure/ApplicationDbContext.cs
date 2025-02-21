@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using NetCatHook.Scraper.App;
+using NetCatHook.Scraper.Application;
 using NetCatHook.Scraper.Domain.Entities;
 
 namespace NetCatHook.Scraper.Infrastructure;

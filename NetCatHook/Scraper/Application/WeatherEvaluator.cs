@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace NetCatHook.Scraper.App;
+namespace NetCatHook.Scraper.Application;
 
 record class WeatherEvaluatorData(bool Processed, string? TextMessage);
 

@@ -1,6 +1,6 @@
-﻿namespace NetCatHook.Scraper.Infrastructure.Repository;
+﻿using NetCatHook.Scraper.Application.Repository;
 
-using NetCatHook.Scraper.App.Repository;
+namespace NetCatHook.Scraper.Infrastructure.Repository;
 
 sealed class DbUnitOfWork : IUnitOfWork
 {

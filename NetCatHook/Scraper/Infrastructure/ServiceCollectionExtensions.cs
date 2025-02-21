@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using NetCatHook.Scraper.App;
-using NetCatHook.Scraper.App.HtmlProcessing;
-using NetCatHook.Scraper.App.Messenger;
-using NetCatHook.Scraper.App.Repository;
-using NetCatHook.Scraper.App.Schedulers;
+using NetCatHook.Scraper.Application;
+using NetCatHook.Scraper.Application.HtmlProcessing;
+using NetCatHook.Scraper.Application.Messenger;
+using NetCatHook.Scraper.Application.Repository;
+using NetCatHook.Scraper.Application.Schedulers;
 using NetCatHook.Scraper.Infrastructure.HtmlProcessing;
 using NetCatHook.Scraper.Infrastructure.Messenger;
 using NetCatHook.Scraper.Infrastructure.Repository;

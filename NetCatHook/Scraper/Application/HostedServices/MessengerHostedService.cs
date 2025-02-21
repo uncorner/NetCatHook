@@ -1,13 +1,13 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using NetCatHook.Scraper.App.HtmlProcessing;
-using NetCatHook.Scraper.App.Messenger;
-using NetCatHook.Scraper.App.Repository;
-using NetCatHook.Scraper.App.Schedulers;
+using NetCatHook.Scraper.Application.HtmlProcessing;
+using NetCatHook.Scraper.Application.Messenger;
+using NetCatHook.Scraper.Application.Repository;
+using NetCatHook.Scraper.Application.Schedulers;
 using NetCatHook.Scraper.Domain.Entities;
 
-namespace NetCatHook.Scraper.App.HostedServices;
+namespace NetCatHook.Scraper.Application.HostedServices;
 
 class MessengerHostedService : IHostedService, IWeatherInformer
 {

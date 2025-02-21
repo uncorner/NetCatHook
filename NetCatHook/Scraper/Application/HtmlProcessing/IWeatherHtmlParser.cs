@@ -1,4 +1,4 @@
-﻿namespace NetCatHook.Scraper.App.HtmlProcessing;
+﻿namespace NetCatHook.Scraper.Application.HtmlProcessing;
 
 interface IWeatherHtmlParser
 {

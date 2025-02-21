@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using NetCatHook.Scraper.App;
+using NetCatHook.Scraper.Application;
 
 namespace NetCatHook.Scraper.Domain.Entities;
 

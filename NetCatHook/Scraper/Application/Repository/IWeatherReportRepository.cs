@@ -1,6 +1,6 @@
 ﻿using NetCatHook.Scraper.Domain.Entities;
 
-namespace NetCatHook.Scraper.App.Repository;
+namespace NetCatHook.Scraper.Application.Repository;
 
 interface IWeatherReportRepository
 {

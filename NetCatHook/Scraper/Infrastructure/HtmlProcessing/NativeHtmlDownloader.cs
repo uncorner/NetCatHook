@@ -1,8 +1,8 @@
-﻿using NetCatHook.Scraper.App;
-using NetCatHook.Scraper.App.HtmlProcessing;
-using System.Net;
+﻿using System.Net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using NetCatHook.Scraper.Application;
+using NetCatHook.Scraper.Application.HtmlProcessing;
 
 namespace NetCatHook.Scraper.Infrastructure.HtmlProcessing;
 

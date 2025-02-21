@@ -1,4 +1,4 @@
-﻿namespace NetCatHook.Scraper.App.Schedulers;
+﻿namespace NetCatHook.Scraper.Application.Schedulers;
 
 internal delegate void SchedulerEventHandler();
 

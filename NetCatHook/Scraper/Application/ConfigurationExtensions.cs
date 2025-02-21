@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 
-namespace NetCatHook.Scraper.App;
+namespace NetCatHook.Scraper.Application;
 
 static class ConfigurationExtensions
 {

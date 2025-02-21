@@ -1,4 +1,4 @@
-﻿using NetCatHook.Scraper.App.HtmlProcessing;
+﻿using NetCatHook.Scraper.Application.HtmlProcessing;
 using PuppeteerSharp;
 
 namespace NetCatHook.Scraper.Infrastructure.HtmlProcessing;
