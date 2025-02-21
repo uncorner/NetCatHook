@@ -2,9 +2,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NetCatHook.Scraper.Application;
-using NetCatHook.Scraper.Application.HtmlProcessing;
+using NetCatHook.Scraper.Application.WeatherService;
 
-namespace NetCatHook.Scraper.Infrastructure.HtmlProcessing;
+namespace NetCatHook.Scraper.Infrastructure.WeatherService;
 
 class NativeHtmlDownloader : IHtmlSource
 {

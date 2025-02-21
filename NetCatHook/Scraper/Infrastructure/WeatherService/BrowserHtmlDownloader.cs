@@ -1,7 +1,7 @@
-﻿using NetCatHook.Scraper.Application.HtmlProcessing;
+﻿using NetCatHook.Scraper.Application.WeatherService;
 using PuppeteerSharp;
 
-namespace NetCatHook.Scraper.Infrastructure.HtmlProcessing;
+namespace NetCatHook.Scraper.Infrastructure.WeatherService;
 
 class BrowserHtmlDownloader : IHtmlSource
 {

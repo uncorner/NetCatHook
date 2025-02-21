@@ -1,8 +1,8 @@
 ﻿using System.Text.RegularExpressions;
 using NetCatHook.Scraper.Application;
-using NetCatHook.Scraper.Application.HtmlProcessing;
+using NetCatHook.Scraper.Application.WeatherService;
 
-namespace NetCatHook.Scraper.Infrastructure.HtmlProcessing;
+namespace NetCatHook.Scraper.Infrastructure.WeatherService;
 
 class WeatherHtmlParser : IWeatherHtmlParser
 {

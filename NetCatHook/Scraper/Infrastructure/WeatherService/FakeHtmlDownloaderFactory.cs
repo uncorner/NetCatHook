@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace NetCatHook.Scraper.Infrastructure.HtmlProcessing;
+namespace NetCatHook.Scraper.Infrastructure.WeatherService;
 
 static class FakeHtmlDownloaderFactory
 {
