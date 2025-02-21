@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NetCatHook.Scraper.Application;
-using NetCatHook.Scraper.Application.Messenger;
 using NetCatHook.Scraper.Application.Repository;
 using NetCatHook.Scraper.Application.Schedulers;
 using NetCatHook.Scraper.Application.WeatherService;

@@ -1,4 +1,6 @@
-﻿namespace NetCatHook.Scraper.Application.Messenger;
+﻿using NetCatHook.Scraper.Application;
+
+namespace NetCatHook.Scraper.Presentation.Messenger;
 
 interface IMessenger : IDisposable
 {

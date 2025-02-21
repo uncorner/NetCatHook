@@ -1,4 +1,4 @@
-﻿namespace NetCatHook.ScraperTests.Infrastructure.HtmlProcessing;
+﻿namespace NetCatHook.ScraperTests.Infrastructure.WeatherService;
 
 public partial class WeatherHtmlParserTest
 {

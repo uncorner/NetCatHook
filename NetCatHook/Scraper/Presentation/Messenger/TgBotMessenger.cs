@@ -3,7 +3,6 @@ using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NetCatHook.Scraper.Application;
-using NetCatHook.Scraper.Application.Messenger;
 using NetCatHook.Scraper.Application.Repository;
 using NetCatHook.Scraper.Domain.Entities;
 using Telegram.Bot;
