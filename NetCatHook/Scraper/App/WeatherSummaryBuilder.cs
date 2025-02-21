@@ -1,5 +1,5 @@
-﻿using NetCatHook.Scraper.App.Entities;
-using System.Text;
+﻿using System.Text;
+using NetCatHook.Scraper.Domain.Entities;
 
 namespace NetCatHook.Scraper.App;
 

@@ -1,7 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using NetCatHook.Scraper.App;
 
-namespace NetCatHook.Scraper.App.Entities;
+namespace NetCatHook.Scraper.Domain.Entities;
 
 class WeatherReport
 {

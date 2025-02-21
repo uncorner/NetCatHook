@@ -1,5 +1,4 @@
-﻿using NetCatHook.Scraper.App.Entities;
-using NetCatHook.Scraper.App.Repository;
+﻿using NetCatHook.Scraper.App.Repository;
 using System.Collections.Concurrent;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
@@ -11,6 +10,7 @@ using NetCatHook.Scraper.App.Messenger;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using NetCatHook.Scraper.Domain.Entities;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace NetCatHook.Scraper.Infrastructure.Messenger;

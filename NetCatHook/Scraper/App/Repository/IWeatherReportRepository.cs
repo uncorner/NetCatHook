@@ -1,4 +1,4 @@
-﻿using NetCatHook.Scraper.App.Entities;
+﻿using NetCatHook.Scraper.Domain.Entities;
 
 namespace NetCatHook.Scraper.App.Repository;
 

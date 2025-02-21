@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using NetCatHook.Scraper.App.Entities;
 using NetCatHook.Scraper.App.HtmlProcessing;
 using NetCatHook.Scraper.App.Messenger;
 using NetCatHook.Scraper.App.Repository;
 using NetCatHook.Scraper.App.Schedulers;
+using NetCatHook.Scraper.Domain.Entities;
 
 namespace NetCatHook.Scraper.App.HostedServices;
 
