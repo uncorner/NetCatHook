@@ -14,9 +14,9 @@ class MemoryUnitOfWorkFactory : IUnitOfWorkFactory
 
 file class MemoryUnitOfWork : IUnitOfWork
 {
-    public ITgBotChatRepository CreateTgBotChatRepository()
+    public ISubjectChatRepository CreateSubjectChatRepository()
     {
-        return new MemoryTgBotChatRepository();
+        return new MemorySubjectChatRepository();
     }
 
     public IWeatherReportRepository CreateWeatherReportRepository()
@@ -44,11 +44,11 @@ file class MemoryUnitOfWork : IUnitOfWork
     }
 }
 
-file class MemoryTgBotChatRepository : ITgBotChatRepository
+file class MemorySubjectChatRepository : ISubjectChatRepository
 {
-    private readonly ConcurrentDictionary<int, TgBotChat> chatDict = new();
+    private readonly ConcurrentDictionary<int, SubjectChat> chatDict = new();
 
-    public Task Add(TgBotChat chat)
+    public Task Add(SubjectChat chat)
     {
         var maxId = chatDict.Keys.Any() ? chatDict.Keys.Max() : 1;
         chat.Id = maxId++;
@@ -60,13 +60,13 @@ file class MemoryTgBotChatRepository : ITgBotChatRepository
         return Task.CompletedTask;
     }
 
-    public Task<IEnumerable<TgBotChat>> GetAllEnabled()
+    public Task<IEnumerable<SubjectChat>> GetAllEnabled()
     {
         var items = chatDict.Values.Where(e => e.IsEnabled).AsEnumerable();
         return Task.FromResult(items);
     }
 
-    public Task<TgBotChat?> GetByChatId(long chatId)
+    public Task<SubjectChat?> GetByChatId(long chatId)
     {
         var chat = chatDict.Values.Where(e => e.ChatId == chatId).FirstOrDefault();
         return Task.FromResult(chat);

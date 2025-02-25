@@ -3,7 +3,7 @@
 namespace NetCatHook.Scraper.Domain.Entities;
 
 [Index(nameof(ChatId), Name = "IX_ChatId_Unique", IsUnique = true)]
-class TgBotChat
+class SubjectChat
 {
     public int Id { get; set; }
 

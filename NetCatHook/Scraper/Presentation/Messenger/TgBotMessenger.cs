@@ -95,7 +95,7 @@ class TgBotMessenger(
         var chatIdMap = Array.Empty<KeyValuePair<long, ChatData>>();
         await using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
         {
-            var repository = unitOfWork.CreateTgBotChatRepository();
+            var repository = unitOfWork.CreateSubjectChatRepository();
             var chats = await repository.GetAllEnabled();
             chatIdMap = chats.Select(chat =>
                 new KeyValuePair<long, ChatData>(chat.ChatId, ConvertToChatData(chat)))
@@ -105,7 +105,7 @@ class TgBotMessenger(
         return new ConcurrentDictionary<long, ChatData>(chatIdMap);
     }
 
-    private static ChatData ConvertToChatData(TgBotChat chat) => new ChatData
+    private static ChatData ConvertToChatData(SubjectChat chat) => new ChatData
     {
         ChatId = chat.ChatId,
         IsNotifying = chat.IsNotifying
@@ -395,10 +395,10 @@ class TgBotMessenger(
         };
     }
 
-    private async Task<ChatData> UpdateChat(long chatId, Action<TgBotChat> updateAction)
+    private async Task<ChatData> UpdateChat(long chatId, Action<SubjectChat> updateAction)
     {
         await using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
-        var repository = unitOfWork.CreateTgBotChatRepository();
+        var repository = unitOfWork.CreateSubjectChatRepository();
         var chat = await repository.GetByChatId(chatId) ?? throw new Exception($"Tg chat with id {chatId} not found");
 
         updateAction(chat);
@@ -407,15 +407,15 @@ class TgBotMessenger(
         return ConvertToChatData(chat);
     }
 
-    private async Task<ChatData> SaveOrUpdateChat(long chatId, Action<TgBotChat> updateAction)
+    private async Task<ChatData> SaveOrUpdateChat(long chatId, Action<SubjectChat> updateAction)
     {
         await using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
-        var repository = unitOfWork.CreateTgBotChatRepository();
+        var repository = unitOfWork.CreateSubjectChatRepository();
         var chat = await repository.GetByChatId(chatId);
 
         if (chat is null)
         {
-            chat = new TgBotChat()
+            chat = new SubjectChat()
             {
                 ChatId = chatId,
             };

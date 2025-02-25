@@ -2,8 +2,11 @@
 
 interface IUnitOfWork : IDisposable, IAsyncDisposable
 {
-    ITgBotChatRepository CreateTgBotChatRepository();
+    #region Repositories
+    ISubjectChatRepository CreateSubjectChatRepository();
     IWeatherReportRepository CreateWeatherReportRepository();
+    #endregion
+    
     int SaveChanges();
     Task<int> SaveChangesAsync();
 }

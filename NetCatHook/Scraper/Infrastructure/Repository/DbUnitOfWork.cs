@@ -13,8 +13,8 @@ sealed class DbUnitOfWork : IUnitOfWork
 
     #region Repositories
 
-    public ITgBotChatRepository CreateTgBotChatRepository() =>
-        new DbTgBotChatRepository(dbContext);
+    public ISubjectChatRepository CreateSubjectChatRepository() =>
+        new DbSubjectChatRepository(dbContext);
 
     public IWeatherReportRepository CreateWeatherReportRepository() =>
         new DbWeatherReportRepository(dbContext);
